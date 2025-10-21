@@ -10,8 +10,9 @@ app = Flask(__name__)
 # and defaults to a local SQLite file for development.
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
-    'DATABASE_URLX', 
-    'sqlite:///' + os.path.join(basedir, 'instance', 'app.db'))
+    'DATABASE_URL_FIXME',
+    'sqlite:///' + os.path.join(basedir, 'instance', 'app.db')
+)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize the Flask-SQLAlchemy extension
