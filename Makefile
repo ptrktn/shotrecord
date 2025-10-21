@@ -15,6 +15,6 @@ static/d3.min.js:
 	curl -sL https://d3js.org/d3.v7.min.js > $@
 
 .PHONY: run
-run: deps
+run:
 	. venv/bin/activate && flask run
 
