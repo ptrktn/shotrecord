@@ -16,9 +16,5 @@ static/d3.min.js:
 
 .PHONY: run
 run:
-	. venv/bin/activate && flask run
-
-.PHONY: grun
-grun:
 	. venv/bin/activate && gunicorn -b 127.0.0.1:5000 -k eventlet -w 1 app:app
 
