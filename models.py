@@ -10,6 +10,7 @@ db = SQLAlchemy(model_class=Base)
 
 class Series(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    # FIXME: separate id and imported IDs
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     total_points = db.Column(db.Float, nullable=False)
     total_t = db.Column(db.Float, nullable=True)

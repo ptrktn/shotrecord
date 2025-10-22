@@ -1,8 +1,10 @@
 import os
 import uuid
-from flask import Flask, render_template, request, redirect, url_for
+import threading
+from flask import Flask, render_template, request, redirect, url_for, copy_current_request_context
 from werkzeug.utils import secure_filename
 from models import db, Series, Shots
+from data_importer import import_data_from_file
 
 def create_app():
     # Create the Flask application instance
@@ -17,6 +19,7 @@ def create_app():
         'sqlite:///' + os.path.join(basedir, 'instance', 'app.db')
     )
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
     app.config['UPLOAD_FOLDER'] = os.path.join(basedir, 'uploads')
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 # 16 MB
 
@@ -38,11 +41,21 @@ def index():
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
+    @copy_current_request_context
+    def import_data_from_file_wrapper(filename):
+        import_data_from_file(filename)
+
     if 'file' not in request.files:
         return 'No file part in the request', 400
+
     file = request.files['file']
+
     if file.filename == '':
         return 'No selected file', 400
-    filename = str(uuid.uuid4()) # secure_filename(file.filename)
-    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+    filename = os.path.join(app.config['UPLOAD_FOLDER'], str(uuid.uuid4()))
+    file.save(filename)
+    thread = threading.Thread(target=import_data_from_file_wrapper, args=(filename,))
+    thread.start()
+
     return 'File uploaded successfully', 200
