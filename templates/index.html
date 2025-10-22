@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="static/favicon.png">
+    <title>WebSocket Test</title>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script>
+        var socket = io();
+        socket.on('connect', function() {
+            console.log('Connected to server');
+            socket.send('Hello from client!');
+        });
+        socket.on('message', function(msg) {
+            console.log('Received: ' + msg);
+        });  
+        socket.on('welcome', (data) => {
+            console.log('Received:', data.message);
+            document.getElementById('message').innerText = data.message;
+        });
+    </script>
+</head>
+<body>
+    <h1>WebSocket Test</h1>
+    <div id="message"></div>
+</body>
+</html>

@@ -2,7 +2,7 @@ import os
 import uuid
 import threading
 from flask import Flask, render_template, request, redirect, url_for, copy_current_request_context
-from werkzeug.utils import secure_filename
+from flask_socketio import SocketIO, send, emit
 from models import db, Series, Shots
 from data_importer import import_data_from_file
 
@@ -22,6 +22,7 @@ def create_app():
 
     app.config['UPLOAD_FOLDER'] = os.path.join(basedir, 'uploads')
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 # 16 MB
+    app.config['SECRET_KEY'] = str(uuid.uuid4())
 
     # Initialize the Flask-SQLAlchemy extension
     db.init_app(app)
@@ -33,9 +34,14 @@ def create_app():
     return app
 
 app = create_app()
+socketio = SocketIO(app)
 
-@app.route("/", methods=["GET"])
+@app.route('/')
 def index():
+    return render_template('index.html')
+
+@app.route("/shot", methods=["GET"])
+def shot():
     result = None
     return render_template("shot.html", result=result)
 
@@ -59,3 +65,19 @@ def upload_file():
     thread.start()
 
     return 'File uploaded successfully', 200
+
+
+@socketio.on('connect')
+def handle_connect():
+    print('Client connected')
+    socketio.emit('welcome', {'message': 'Hello from the server!'})
+
+
+@socketio.on('message')
+def handle_message(msg):
+    print('Received message: ' + msg)
+    socketio.send('Echo: ' + msg)
+
+
+if __name__ == '__main__':
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
