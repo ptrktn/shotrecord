@@ -44,16 +44,17 @@ socketio = SocketIO(app)
 def index():
     return render_template('index.html')
 
-@app.route("/shot", methods=["GET"])
+@app.route("/shot", methods=['GET'])
 def shot():
     result = None
     return render_template("shot.html", result=result)
 
-@app.route('/upload', methods=['POST'])
-def upload_file():
+@app.route('/upload/<name>', methods=['POST'])
+def upload_file(name):
     @copy_current_request_context
-    def import_data_from_file_wrapper(filename):
-        import_data_from_file(filename)
+    def import_data_from_file_wrapper(filename, name):
+        import_data_from_file(filename, name)
+        socketio.emit('notifications', {'message': f"User {name} file import completed!"})
 
     if 'file' not in request.files:
         return 'No file part in the request', 400
@@ -63,9 +64,10 @@ def upload_file():
     if file.filename == '':
         return 'No selected file', 400
 
+    name = ''.join(c for c in name if c.isalnum())
     filename = os.path.join(app.config['UPLOAD_FOLDER'], str(uuid.uuid4()))
     file.save(filename)
-    thread = threading.Thread(target=import_data_from_file_wrapper, args=(filename,))
+    thread = threading.Thread(target=import_data_from_file_wrapper, args=(filename, name))
     thread.start()
 
     return 'File uploaded successfully', 200
@@ -74,7 +76,6 @@ def upload_file():
 @socketio.on('connect')
 def handle_connect():
     print('Client connected')
-    socketio.emit('welcome', {'message': 'Hello from the server!'})
 
 
 @socketio.on('message')

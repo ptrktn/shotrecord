@@ -14,14 +14,13 @@
         socket.on('message', function(msg) {
             console.log('Received: ' + msg);
         });  
-        socket.on('welcome', (data) => {
+        socket.on('notifications', (data) => {
             console.log('Received:', data.message);
             document.getElementById('message').innerText = data.message;
         });
     </script>
 </head>
 <body>
-    <h1>WebSocket Test</h1>
     <div id="message"></div>
 </body>
 </html>

@@ -20,7 +20,7 @@ def extract_shots(obj):
     return shots
 
 
-def import_ecoaims_db(db_path):
+def import_ecoaims_db(db_path, name):
     """Import data from an Ecoaims SQLite database file.
     sqlite> .schema ekoaims_games
         CREATE TABLE ekoaims_games (
@@ -39,7 +39,7 @@ def import_ecoaims_db(db_path):
         if row is None:
             break
 
-        series_id = row[0]
+        source_id = row[0]
         data = json.loads(row[1])  # Parse JSON string into Python dict
         created_at = row[2]
         total_points = 0.0
@@ -50,13 +50,16 @@ def import_ecoaims_db(db_path):
             total_points += shot.get("points", 0.0)
             total_t += shot.get("time", 0.0)
 
-        new_series = Series(
-            id=series_id,
+        series = Series(
+            source_id=source_id,
+            name=name,
             created_at=datetime.strptime(created_at, '%Y-%m-%d %H:%M:%S'),
             total_points=total_points,
             total_t=total_t
         )
-        db.session.add(new_series)
+        db.session.add(series)
+        db.session.flush()  # Get the ID assigned by the database
+        series_id = series.id
 
         for shot in shots:
             new_shot = Shots(
@@ -76,10 +79,10 @@ def import_ecoaims_db(db_path):
     conn.close()
 
 
-def import_data_from_file(filepath):
+def import_data_from_file(filepath, name):
     # Placeholder for the actual data import logic
-    print(f"Importing data from {filepath}")
-    import_ecoaims_db(filepath)
+    print(f"Importing data from {filepath} user {name}...")
+    import_ecoaims_db(filepath, name)
     print("Data import completed.")
     os.unlink(filepath)  # Delete the file after import
     print(f"Deleted temporary file {filepath}")

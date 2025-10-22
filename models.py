@@ -10,13 +10,16 @@ db = SQLAlchemy(model_class=Base)
 
 class Series(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    source_id = db.Column(db.Integer, nullable=False)
+    name = db.Column(db.String(64), nullable=False)
     # FIXME: separate id and imported IDs
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     total_points = db.Column(db.Float, nullable=False)
     total_t = db.Column(db.Float, nullable=True)
 
     def __repr__(self):
         return f"<Series {self.id}>"
+
 
 class Shots(db.Model):
     id = db.Column(db.Integer, primary_key=True)
