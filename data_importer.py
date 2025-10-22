@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 from models import db, Series, Shots
 
+
 # Recursive function to find all "shot" elements
 # FIXME: this is duplicated in cli.py
 def extract_shots(obj):
@@ -34,6 +35,8 @@ def import_ecoaims_db(db_path, name):
     cursor = conn.cursor()
     cursor.execute("SELECT id, game, created FROM ekoaims_games ORDER BY id ASC")
     
+    n_skipped = 0
+
     while True:
         row = cursor.fetchone()
         if row is None:
@@ -41,9 +44,14 @@ def import_ecoaims_db(db_path, name):
 
         source_id = row[0]
         data = json.loads(row[1])  # Parse JSON string into Python dict
-        created_at = row[2]
+        created_at = datetime.strptime(row[2], '%Y-%m-%d %H:%M:%S')
         total_points = 0.0
         total_t = 0.0
+
+        # Check if this series already exists to avoid duplicates (good enough for now)
+        if Series.query.filter_by(name=name, created_at=created_at).first():
+            n_skipped += 1
+            continue
 
         shots = extract_shots(data)
         for shot in shots:
@@ -53,7 +61,7 @@ def import_ecoaims_db(db_path, name):
         series = Series(
             source_id=source_id,
             name=name,
-            created_at=datetime.strptime(created_at, '%Y-%m-%d %H:%M:%S'),
+            created_at=created_at,
             total_points=total_points,
             total_t=total_t
         )
@@ -74,16 +82,19 @@ def import_ecoaims_db(db_path, name):
             db.session.add(new_shot)
         
         db.session.commit()
-        print(f"Series ID: {series_id}, Created: {created_at}, Points: {total_points}, Time: {total_t}") 
+        print(f"User: {name}, Series ID: {series_id}, Created: {created_at}, Points: {total_points}, Time: {total_t}")
 
     conn.close()
 
+    print(f"User {name} import completed, skipped {n_skipped} existing series")
 
+
+# FIXME: currently only imports Ecoaims DBs
 def import_data_from_file(filepath, name):
     # Placeholder for the actual data import logic
-    print(f"Importing data from {filepath} user {name}...")
+    print(f"Importing user {name} data from {filepath}")
     import_ecoaims_db(filepath, name)
-    print("Data import completed.")
+    print("Data import completed")
     os.unlink(filepath)  # Delete the file after import
     print(f"Deleted temporary file {filepath}")
 
