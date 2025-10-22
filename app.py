@@ -1,5 +1,5 @@
-import eventlet
-eventlet.monkey_patch()
+# import eventlet
+# eventlet.monkey_patch()
 
 from flask import Flask, render_template, request, redirect, url_for, copy_current_request_context
 from flask_socketio import SocketIO, send, emit
