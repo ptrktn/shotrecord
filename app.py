@@ -1,10 +1,13 @@
-import os
-import uuid
-import threading
+import eventlet
+eventlet.monkey_patch()
+
 from flask import Flask, render_template, request, redirect, url_for, copy_current_request_context
 from flask_socketio import SocketIO, send, emit
 from models import db, Series, Shots
 from data_importer import import_data_from_file
+import os
+import uuid
+import threading
 
 def create_app():
     # Create the Flask application instance
