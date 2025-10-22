@@ -1,5 +1,6 @@
 import sqlite3
 import json
+import os
 from datetime import datetime
 from models import db, Series, Shots
 
@@ -80,4 +81,6 @@ def import_data_from_file(filepath):
     print(f"Importing data from {filepath}")
     import_ecoaims_db(filepath)
     print("Data import completed.")
+    os.unlink(filepath)  # Delete the file after import
+    print(f"Deleted temporary file {filepath}")
 
