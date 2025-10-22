@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="static/favicon.png">
-    <title>WebSocket Test</title>
+    <title>ShotRecord - Precision Shooting Results, Visualized</title>
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
     <script>
         var socket = io();
@@ -17,6 +17,7 @@
         socket.on('notifications', (data) => {
             console.log('Received:', data.message);
             document.getElementById('message').innerText = data.message;
+            window.location.href = '/shot'; // FIXME: redirect to /shot page?
         });
     </script>
 </head>
