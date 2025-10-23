@@ -59,26 +59,6 @@ def get_series(series_id):
         abort(404, description="Series not found")
 
     return render_template('series.html', series=series)
-    return jsonify({
-        "id": series.id,
-        "source_id": series.source_id,
-        "name": series.name,
-        "created_at": series.created_at.isoformat(),
-        "total_points": series.total_points,
-        "total_t": series.total_t,
-        "shots": [
-            {
-                "id": shot.id,
-                "hit": shot.hit,
-                "points": shot.points,
-                "shotnum": shot.shotnum,
-                "x": shot.x,
-                "y": shot.y,
-                "t": shot.t
-            }
-            for shot in sorted(series.shots, key=lambda s: s.shotnum)
-        ]
-    })
 
 
 @app.route("/shot", methods=['GET'])

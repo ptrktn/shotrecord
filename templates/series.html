@@ -35,51 +35,54 @@
   <script src="/static/d3.min.js"></script>
   <script src="/static/series.js"></script>
   <h2>Series {{ series.id }}: {{ series.name }}</h2>
-<p>Created at: {{ series.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
-<p>Total points: {{ series.total_points }}</p>
-<p>Total time: {{ series.total_t }} seconds</p>
+  <p>Created at: {{ series.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+  <p>Total points: {{ series.total_points }}</p>
+  <p>Average points per shot: {{ '%.2f' % (series.total_points / series.n) }}</p>
+  <p>Total time: {{ series.total_t }} seconds</p>
+  <p>Number of shots: {{ series.n }}</p>
+  <p>Points variance: {{ series.variance }}</p>
 
-<h3>Shots</h3>
-<table>
-  <thead>
-    <tr>
-      <th>#</th>
-      <th>Points</th>
-      <th>Hit</th>
-      <th>X</th>
-      <th>Y</th>
-      <th>Time</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for shot in series.shots %}
-    <tr>
-      <td>{{ shot.shotnum }}</td>
-      <td>{{ shot.points }}</td>
-      <td>{{ shot.hit }}</td>
-      <td>{{ shot.x }}</td>
-      <td>{{ shot.y }}</td>
-      <td>{{ shot.t }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-  <script>
-    const seriesData = {
-      shots: [
-        {% for shot in series.shots %}
-        {
-          shotnum: {{ shot.shotnum }},
-          points: {{ shot.points }},
-          hit: {{ shot.hit }},
-          x: {{ shot.x }},
-          y: {{ shot.y }},
-          t: {{ shot.t }}
-        }{% if not loop.last %},{% endif %}
-        {% endfor %}
-      ]
-    };
-    create_series_plot(seriesData);
-  </script>
+  <h3>Shots</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Points</th>
+        <th>Hit</th>
+        <th>X</th>
+        <th>Y</th>
+        <th>Time</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for shot in series.shots %}
+      <tr>
+        <td>{{ shot.shotnum }}</td>
+        <td>{{ shot.points }}</td>
+        <td>{{ shot.hit }}</td>
+        <td>{{ shot.x }}</td>
+        <td>{{ shot.y }}</td>
+        <td>{{ shot.t }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+    <script>
+      const seriesData = {
+        shots: [
+          {% for shot in series.shots %}
+          {
+            shotnum: {{ shot.shotnum }},
+            points: {{ shot.points }},
+            hit: {{ shot.hit }},
+            x: {{ shot.x }},
+            y: {{ shot.y }},
+            t: {{ shot.t }}
+          }{% if not loop.last %},{% endif %}
+          {% endfor %}
+        ]
+      };
+      create_series_plot(seriesData);
+    </script>
 </body>
 </html>

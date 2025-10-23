@@ -5,6 +5,14 @@ from datetime import datetime
 from models import db, Series, Shots
 
 
+def population_variance(data):
+    """Calculate the population variance of a list of numbers."""
+    if len(data) == 0:
+        return 0.0
+    mean = sum(data) / len(data)
+    return sum((x - mean) ** 2 for x in data) / len(data)
+
+
 # Recursive function to find all "shot" elements
 # FIXME: this is duplicated in cli.py
 def extract_shots(obj):
@@ -64,7 +72,9 @@ def import_ecoaims_db(db_path, name):
             name=name,
             created_at=created_at,
             total_points=total_points,
-            total_t=total_t
+            total_t=total_t,
+            n=len(shots),
+            variance=population_variance([shot.get("points", 0.0) for shot in shots])
         )
         db.session.add(series)
         db.session.flush()  # Get the ID assigned by the database
