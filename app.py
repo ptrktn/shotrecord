@@ -2,10 +2,11 @@
 import eventlet
 eventlet.monkey_patch()
 
-from flask import Flask, render_template, request, redirect, url_for, copy_current_request_context
+from flask import Flask, render_template, request, redirect, url_for, copy_current_request_context, jsonify
 from flask_socketio import SocketIO, send, emit
 from models import db, Series, Shots
 from data_importer import import_data_from_file
+from sqlalchemy.orm import joinedload
 import os
 import uuid
 import threading
@@ -44,10 +45,47 @@ socketio = SocketIO(app)
 def index():
     return render_template('index.html')
 
+
+@app.route('/series/<int:series_id>', methods=['GET'])
+def get_series(series_id):
+    series = (
+        db.session.query(Series)
+        .options(joinedload(Series.shots))
+        .filter(Series.id == series_id)
+        .first()
+    )
+
+    if not series:
+        abort(404, description="Series not found")
+
+    return render_template('series.html', series=series)
+    return jsonify({
+        "id": series.id,
+        "source_id": series.source_id,
+        "name": series.name,
+        "created_at": series.created_at.isoformat(),
+        "total_points": series.total_points,
+        "total_t": series.total_t,
+        "shots": [
+            {
+                "id": shot.id,
+                "hit": shot.hit,
+                "points": shot.points,
+                "shotnum": shot.shotnum,
+                "x": shot.x,
+                "y": shot.y,
+                "t": shot.t
+            }
+            for shot in sorted(series.shots, key=lambda s: s.shotnum)
+        ]
+    })
+
+
 @app.route("/shot", methods=['GET'])
 def shot():
     result = None
     return render_template("shot.html", result=result)
+
 
 @app.route('/upload/<name>', methods=['POST'])
 def upload_file(name):

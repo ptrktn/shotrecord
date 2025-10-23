@@ -21,6 +21,7 @@ def extract_shots(obj):
     return shots
 
 
+# FIXME: coordinate transformation not handled here
 def import_ecoaims_db(db_path, name):
     """Import data from an Ecoaims SQLite database file.
     sqlite> .schema ekoaims_games
@@ -74,7 +75,7 @@ def import_ecoaims_db(db_path, name):
                 series_id=series_id,
                 hit=shot.get("hit", 0),
                 points=shot.get("points", 0.0),
-                shotnum=shot.get("shotnum", 0),
+                shotnum=shot.get("shotNumber", 0),
                 x=shot.get("x", 0),
                 y=shot.get("y", 0),
                 t=shot.get("time", 0.0)
