@@ -12,6 +12,7 @@ class Series(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     source_id = db.Column(db.Integer, nullable=False)
     name = db.Column(db.String(64), nullable=False, index=True)
+    description = db.Column(db.String(64), nullable=False, default="Training Shooting")
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     total_points = db.Column(db.Float, nullable=False)
     n = db.Column(db.Integer, nullable=False)

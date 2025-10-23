@@ -34,7 +34,7 @@
 
   <script src="/static/d3.min.js"></script>
   <script src="/static/series.js"></script>
-  <h2>Series {{ series.id }}: {{ series.name }}</h2>
+  <h2>{{ series.description }} Series {{ series.id }} User {{ series.name }}</h2>
   <p>Created at: {{ series.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
   <p>Total points: {{ series.total_points }}</p>
   <p>Average points per shot: {{ '%.2f' % (series.total_points / series.n) }}</p>
