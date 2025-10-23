@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="/static/favicon.png">
+  <title>ShotRecord - Precision Shooting Results, Visualized</title>
+
+  <style>
+    svg {
+      font-family: sans-serif; 
+      background-color: #fff;
+      display: block;
+      margin: 20px auto;
+      border: 1px solid #ccc;
+    }
+    /* Hide x-axis ticks and labels entirely */
+    .x-axis .tick text { display: none; }
+    .x-axis .tick line { display: none; }
+    .x-axis path.domain { display: none; }
+  </style>
+</head>
+<body>
+  <svg width="800" height="400"></svg>
+  <script src="/static/d3.min.js"></script>
+  <script>
+    const values = [
+      {% for v in data %}
+      {{ v }},
+      {% endfor %}
+    ];
+
+    const svg = d3.select("svg");
+    const margin = { top: 20, right: 30, bottom: 30, left: 50 };
+    const width = +svg.attr("width") - margin.left - margin.right;
+    const height = +svg.attr("height") - margin.top - margin.bottom;
+
+    const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+    // X: index scale
+    const x = d3.scaleLinear()
+      .domain([0, values.length - 1])
+      .range([0, width]);
+
+    // Y: value scale
+    const y = d3.scaleLinear()
+      .domain(d3.extent(values))
+      .nice()
+      .range([height, 0]);
+
+    // Axes
+    const xAxis = d3.axisBottom(x)
+      .ticks(0)
+      .tickSize(0)
+      .tickFormat(() => ""); // ensure no tick labels
+
+    const yAxis = d3.axisLeft(y);
+
+    g.append("g")
+      .attr("class", "x-axis")
+      .attr("transform", `translate(0,${height})`)
+      .call(xAxis);
+
+    g.append("g")
+      .attr("class", "y-axis")
+      .call(yAxis);
+
+    // Scatter points
+    g.selectAll("circle")
+      .data(values.map((v, i) => ({ i, v })))
+      .enter()
+      .append("circle")
+      .attr("cx", d => x(d.i))
+      .attr("cy", d => y(d.v))
+      .attr("r", 4)
+      .attr("fill", "steelblue");
+
+    // Optional: add a line through points (comment out if you want pure scatter)
+    const line = d3.line()
+      .x(d => x(d.i))
+      .y(d => y(d.v));
+
+    g.append("path")
+      .datum(values.map((v, i) => ({ i, v })))
+      .attr("fill", "none")
+      .attr("stroke", "steelblue")
+      .attr("stroke-width", 1.5)
+      .attr("opacity", 0.5)
+      .attr("d", line);
+  </script>
+</body>
+</html>

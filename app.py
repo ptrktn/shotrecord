@@ -56,13 +56,31 @@ def get_series_points(name):
     )
 
     if not results:
-        abort(404, description=f"No points found for series '{name}'")
+        abort(404, description=f"No series found for user '{name}'")
 
     data = [
         (r.created_at.isoformat(timespec='seconds'), round(r.total_points, 1))
         for r in results
     ]
     return render_template("points.html", name=name, data=data)
+
+
+@app.route("/trend/<name>", methods=['GET'])
+def get_series_trend(name):
+    results = (
+        db.session.query(Series.total_points)
+        .filter(Series.name == name)
+        .order_by(Series.created_at.asc())
+        .all()
+    )
+
+    if not results:
+        abort(404, description=f"No series found for user '{name}'")
+
+    data = [round(r.total_points, 1) for r in results]
+
+    return render_template("trend.html", name=name, data=data)
+
 
 @app.route('/series/<int:series_id>', methods=['GET'])
 def get_series(series_id):
