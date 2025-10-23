@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="/static/favicon.png">
+  <title>ShotRecord - Precision Shooting Results, Visualized</title>
+  <style>
+    svg {
+      background-color: #fff;
+      display: block;
+      margin: 20px auto;
+      border: 1px solid #ccc;
+    }
+    text {
+      font-family: sans-serif;
+      font-size: 10px;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <svg id="p1" width="800" height="400"></svg>
+  <script src="/static/d3.min.js"></script>
+
+    <script>
+    const data = [
+      {% for d in data %}
+      { date: new Date("{{ d[0] }}"), value: {{ d[1] }} },
+      {% endfor %}
+    ];
+
+    const svg = d3.select("#p1"),
+          margin = { top: 20, right: 30, bottom: 30, left: 50 },
+          width = +svg.attr("width") - margin.left - margin.right,
+          height = +svg.attr("height") - margin.top - margin.bottom;
+
+    const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+    const x = d3.scaleTime()
+      .domain(d3.extent(data, d => d.date))
+      .range([0, width]);
+
+    const y = d3.scaleLinear()
+      .domain([0, d3.max(data, d => d.value)])
+      .range([height, 0]);
+
+    g.append("g")
+      .attr("transform", `translate(0,${height})`)
+      .call(d3.axisBottom(x));
+
+    g.append("g")
+      .call(d3.axisLeft(y));
+
+    g.selectAll("circle")
+      .data(data)
+      .enter().append("circle")
+      .attr("cx", d => x(d.date))
+      .attr("cy", d => y(d.value))
+      .attr("r", 5)
+      .attr("fill", "tomato");
+  </script>
+</body>
+</html>

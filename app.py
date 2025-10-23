@@ -10,6 +10,7 @@ from sqlalchemy.orm import joinedload
 import os
 import uuid
 import threading
+from flask import abort
 
 def create_app():
     # Create the Flask application instance
@@ -45,6 +46,23 @@ socketio = SocketIO(app)
 def index():
     return render_template('index.html')
 
+@app.route("/points/<name>", methods=['GET'])
+def get_series_points(name):
+    results = (
+        db.session.query(Series.created_at, Series.total_points)
+        .filter(Series.name == name)
+        .order_by(Series.created_at.asc())
+        .all()
+    )
+
+    if not results:
+        abort(404, description=f"No points found for series '{name}'")
+
+    data = [
+        (r.created_at.isoformat(timespec='seconds'), round(r.total_points, 1))
+        for r in results
+    ]
+    return render_template("points.html", name=name, data=data)
 
 @app.route('/series/<int:series_id>', methods=['GET'])
 def get_series(series_id):
