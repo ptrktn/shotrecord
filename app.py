@@ -3,10 +3,12 @@ import eventlet
 eventlet.monkey_patch()
 
 from flask import Flask, render_template, request, redirect, url_for, copy_current_request_context, jsonify
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_socketio import SocketIO, send, emit
-from models import db, Series, Shots
+from models import db, Series, User
 from data_importer import import_data_from_file
 from sqlalchemy.orm import joinedload
+from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import uuid
 import threading
@@ -28,7 +30,7 @@ def create_app():
 
     app.config['UPLOAD_FOLDER'] = os.path.join(basedir, 'uploads')
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 # 16 MB
-    app.config['SECRET_KEY'] = str(uuid.uuid4())
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', str(uuid.uuid4()))
 
     # Initialize the Flask-SQLAlchemy extension
     db.init_app(app)
@@ -41,10 +43,15 @@ def create_app():
 
 app = create_app()
 socketio = SocketIO(app)
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "login"
+
 
 @app.route('/')
 def index():
     return render_template('index.html')
+
 
 @app.route("/points/<name>", methods=['GET'])
 def get_series_points(name):
@@ -125,6 +132,65 @@ def upload_file(name):
     thread.start()
 
     return 'File uploaded successfully', 200
+
+
+# Protected dashboard route
+@app.route("/dashboard")
+@login_required
+def dashboard():
+    return render_template("dashboard.html", username=current_user.username)
+
+
+# Load user for Flask-Login
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        if User.query.filter_by(username=username).first():
+            return render_template("signup.html", error="Username already taken!")
+
+        hashed_password = generate_password_hash(password, method="pbkdf2:sha256")
+
+        new_user = User(username=username, password=hashed_password)
+        db.session.add(new_user)
+        db.session.commit()
+
+        return redirect(url_for("login"))
+    
+    return render_template("signup.html")
+
+
+# Login route
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        user = User.query.filter_by(username=username).first()
+
+        if user and check_password_hash(user.password, password):
+            login_user(user)
+            return redirect(url_for("dashboard"))
+        else:
+            return render_template("login.html", error="Invalid username or password")
+
+    return render_template("login.html")
+
+
+# Logout route
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('/login'))
 
 
 @socketio.on('connect')

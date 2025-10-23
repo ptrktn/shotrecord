@@ -1,6 +1,8 @@
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from datetime import datetime
+
 
 # Create the SQLAlchemy object
 class Base(DeclarativeBase):
@@ -36,3 +38,9 @@ class Shots(db.Model):
 
     def __repr__(self):
         return f"<Shot {self.id} in Series {self.series_id} at ({self.x}, {self.y})>"
+
+
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(64), unique=True, nullable=False)
+    password = db.Column(db.String(64), nullable=False)
