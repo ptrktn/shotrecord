@@ -1,33 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up</title>
-    <style>
-        h1 { color: green; }
-        .error { color: red; }
-    </style>
-</head>
-<body>
-    <nav>
-        <ul>
-            <li><a href="/login">Login</a></li>
-            <li><a href="/logout">Logout</a></li>
-        </ul>
-    </nav>
-    <h1>Create an account</h1>
+{% extends "base.html" %}
+
+{% block title %}Sign Up{% endblock %}
+
+{% block content %}
+
+    <h1 class="text-success mb-4">Create an account</h1>
 
     {% if error %}
-        <p class="error">{{ error }}</p>
+        <div class="alert alert-danger" role="alert">
+            {{ error }}
+        </div>
     {% endif %}
 
-    <form action="/signup" method="post">
-        <label for="username">Username:</label>
-        <input type="text" name="username" required />
-        <label for="password">Password:</label>
-        <input type="password" name="password" required />
-        <button type="submit">Sign Up</button>
+    <form action="/signup" method="post" class="needs-validation" novalidate>
+        <div class="mb-3">
+            <label for="username" class="form-label">Username:</label>
+            <input type="text" name="username" class="form-control" id="username" required>
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Password:</label>
+            <input type="password" name="password" class="form-control" id="password" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Sign Up</button>
     </form>
-</body>
-</html>
+
+{% endblock %}
