@@ -37,7 +37,7 @@ def transform_coordinates(origx, origy, source):
     return origx, origy  # No transformation
 
 
-# FIXME: coordinate transformation not handled here
+# FIXME: get target type from settings (?)
 def import_ecoaims_db(db_path, user_id):
     """Import data from an Ecoaims SQLite database file.
     sqlite> .schema ekoaims_games
