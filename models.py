@@ -34,6 +34,8 @@ class Shots(db.Model):
     shotnum = db.Column(db.Integer, nullable=False)
     x = db.Column(db.Integer, nullable=True)
     y = db.Column(db.Integer, nullable=True)
+    origx = db.Column(db.Integer, nullable=True)
+    origy = db.Column(db.Integer, nullable=True)
     t = db.Column(db.Float, nullable=True)
     series = db.relationship('Series', backref=db.backref('shots', lazy=True))
 

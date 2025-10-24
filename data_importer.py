@@ -29,6 +29,14 @@ def extract_shots(obj):
     return shots
 
 
+def transform_coordinates(origx, origy, source):
+    """Transform coordinates from the source system to the standard system."""
+    if source == 'ecoaims':
+        return origx - 20, origy + 10
+
+    return origx, origy  # No transformation
+
+
 # FIXME: coordinate transformation not handled here
 def import_ecoaims_db(db_path, user_id):
     """Import data from an Ecoaims SQLite database file.
@@ -64,8 +72,8 @@ def import_ecoaims_db(db_path, user_id):
 
         shots = extract_shots(data)
         for shot in shots:
-            total_points += shot.get("points", 0.0)
-            total_t += shot.get("time", 0.0)
+            total_points += shot.get('points', 0.0)
+            total_t += shot.get('time', 0.0)
 
         series = Series(
             user_id=user_id,
@@ -74,20 +82,23 @@ def import_ecoaims_db(db_path, user_id):
             total_points=total_points,
             total_t=total_t,
             n=len(shots),
-            variance=population_variance([shot.get("points", 0.0) for shot in shots])
+            variance=population_variance([shot.get('points', 0.0) for shot in shots])
         )
         db.session.add(series)
         db.session.flush()  # Get the ID assigned by the database
         series_id = series.id
 
         for shot in shots:
+            x, y = transform_coordinates(shot.get('x', 0), shot.get('y', 0), 'ecoaims')
             new_shot = Shots(
                 series_id=series_id,
                 hit=shot.get("hit", 0),
                 points=shot.get("points", 0.0),
                 shotnum=shot.get("shotNumber", 0),
-                x=shot.get("x", 0),
-                y=shot.get("y", 0),
+                origx=shot.get("x", 0),
+                origy=shot.get("y", 0),
+                x=x,
+                y=y,
                 t=shot.get("time", 0.0)
             )
             db.session.add(new_shot)
