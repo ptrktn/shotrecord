@@ -12,14 +12,15 @@ db = SQLAlchemy(model_class=Base)
 
 class Series(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
     source_id = db.Column(db.Integer, nullable=False)
-    name = db.Column(db.String(64), nullable=False, index=True)
     description = db.Column(db.String(64), nullable=False, default="Training Shooting")
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     total_points = db.Column(db.Float, nullable=False)
     n = db.Column(db.Integer, nullable=False)
     variance = db.Column(db.Float, nullable=False)
     total_t = db.Column(db.Float, nullable=True)
+    user = db.relationship('User', backref=db.backref('series', lazy=True))
 
     def __repr__(self):
         return f"<Series {self.id}>"
@@ -27,7 +28,7 @@ class Series(db.Model):
 
 class Shots(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    series_id = db.Column(db.Integer, db.ForeignKey('series.id'), nullable=False)
+    series_id = db.Column(db.Integer, db.ForeignKey('series.id'), nullable=False, index=True)
     hit = db.Column(db.Integer, nullable=False)
     points = db.Column(db.Float, nullable=False)
     shotnum = db.Column(db.Integer, nullable=False)

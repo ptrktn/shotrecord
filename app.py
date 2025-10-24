@@ -12,7 +12,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import uuid
 import threading
-from flask import abort
+from flask import abort, session
 
 def create_app():
     # Create the Flask application instance
@@ -74,10 +74,11 @@ def get_series_points(name):
 
 
 @app.route("/trend/<name>", methods=['GET'])
+@login_required
 def get_series_trend(name):
     results = (
         db.session.query(Series.total_points)
-        .filter(Series.name == name)
+        .filter(Series.user_id == current_user.id)
         .order_by(Series.created_at.asc())
         .all()
     )
@@ -115,14 +116,12 @@ def shot():
 @login_required
 def upload_file():
     @copy_current_request_context
-    def import_data_from_file_wrapper(filename, name):
-        # import_data_from_file(filename, name)
-        print(f"FIXME Importing data for user {name} from file {filename}")
+    def import_data_from_file_wrapper(filename, user_id):
+        import_data_from_file(filename, user_id)
         # FIXME: socketio.emit('notifications', {'message': f"User {name} file import completed!"})
 
     if request.method == "POST":
         if 'file' not in request.files:
-            # FIXME: handle no file part
             return 'No file part in the request', 400
 
         file = request.files['file']
@@ -130,17 +129,13 @@ def upload_file():
         if file.filename == '':
             return 'No file selected', 400
 
-        name = current_user.username # FIXME: enforce alphanumeric usernames only
         filename = os.path.join(app.config['UPLOAD_FOLDER'], str(uuid.uuid4()))
         file.save(filename)
-        thread = threading.Thread(target=import_data_from_file_wrapper, args=(filename, name))
+        thread = threading.Thread(target=import_data_from_file_wrapper, args=(filename, current_user.id))
         thread.start()
+        session['message'] = 'File uploaded successfully! Data import in progress.'
 
-        return render_template(
-            'dashboard.html',
-            message="File uploaded successfully! Data import in progress.",
-            username=current_user.username
-        )
+        return redirect(url_for('dashboard'))
 
     return render_template('upload.html')
 
@@ -149,7 +144,8 @@ def upload_file():
 @app.route("/dashboard")
 @login_required
 def dashboard():
-    return render_template("dashboard.html", username=current_user.username)
+    message = session.get('message', None)
+    return render_template("dashboard.html", username=current_user.username, message=message)
 
 
 # Load user for Flask-Login

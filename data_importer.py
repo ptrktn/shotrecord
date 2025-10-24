@@ -30,7 +30,7 @@ def extract_shots(obj):
 
 
 # FIXME: coordinate transformation not handled here
-def import_ecoaims_db(db_path, name):
+def import_ecoaims_db(db_path, user_id):
     """Import data from an Ecoaims SQLite database file.
     sqlite> .schema ekoaims_games
         CREATE TABLE ekoaims_games (
@@ -58,7 +58,7 @@ def import_ecoaims_db(db_path, name):
         total_t = 0.0
 
         # Check if this series already exists to avoid duplicates (good enough for now)
-        if Series.query.filter_by(name=name, created_at=created_at).first():
+        if Series.query.filter_by(user_id=user_id, created_at=created_at).first():
             n_skipped += 1
             continue
 
@@ -68,8 +68,8 @@ def import_ecoaims_db(db_path, name):
             total_t += shot.get("time", 0.0)
 
         series = Series(
+            user_id=user_id,
             source_id=source_id,
-            name=name,
             created_at=created_at,
             total_points=total_points,
             total_t=total_t,
@@ -93,18 +93,18 @@ def import_ecoaims_db(db_path, name):
             db.session.add(new_shot)
         
         db.session.commit()
-        print(f"User: {name}, Series ID: {series_id}, Created: {created_at}, Points: {total_points}, Time: {total_t}")
+        print(f"User ID: {user_id}, Series ID: {series_id}, Created: {created_at}, Points: {total_points}, Time: {total_t}")
 
     conn.close()
 
-    print(f"User {name} import completed, skipped {n_skipped} existing series")
+    print(f"User ID {user_id} import completed, skipped {n_skipped} existing series")
 
 
 # FIXME: currently only imports Ecoaims DBs
-def import_data_from_file(filepath, name):
+def import_data_from_file(filepath, user_id):
     # Placeholder for the actual data import logic
-    print(f"Importing user {name} data from {filepath}")
-    import_ecoaims_db(filepath, name)
+    print(f"Importing user ID {user_id} data from {filepath}")
+    import_ecoaims_db(filepath, user_id)
     print("Data import completed")
     os.unlink(filepath)  # Delete the file after import
     print(f"Deleted temporary file {filepath}")
