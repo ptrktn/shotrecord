@@ -165,6 +165,21 @@ def signup():
         username = ''.join(c for c in request.form.get("username") if c.isalnum())
         password = request.form.get("password")
 
+        if len(username) == 0 or len(password) == 0:
+            return render_template("signup.html", error="Username and password cannot be empty!")
+
+        if len(password) < 5:
+            return render_template("signup.html", error="Password must be at least 5 characters long!")
+
+        if len(username) < 3:
+            return render_template("signup.html", error="Username must be at least 3 characters long!")
+
+        if len(username) > 32:
+            return render_template("signup.html", error="Username cannot exceed 32 characters!")
+
+        if len(password) > 32:
+            return render_template("signup.html", error="Password cannot exceed 32 characters!")
+
         if User.query.filter_by(username=username).first():
             return render_template("signup.html", error="Username already taken!")
 

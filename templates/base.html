@@ -16,13 +16,20 @@
                 <li class="nav-item"><a class="nav-link" href="/upload"><i class="bi bi-upload"></i> Upload</a></li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-person-circle"></i> Account
+                        <i class="bi bi-person-circle"></i>
+                        {% if current_user.is_authenticated %}
+                            {{ current_user.username | truncate(length=12, killwords=False, end='...')}}
+                        {% else %}
+                            Account
+                        {% endif %}
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                        <li><a class="dropdown-item" href="/login">Login</a></li>
-                        <li><a class="dropdown-item" href="/signup">Sign Up</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="/logout">Logout</a></li>
+                        {% if current_user.is_authenticated %}
+                            <li><a class="dropdown-item" href="/logout">Logout</a></li>
+                        {% else %}
+                            <li><a class="dropdown-item" href="/login">Login</a></li>
+                            <li><a class="dropdown-item" href="/signup">Sign Up</a></li>
+                        {% endif %}
                     </ul>
                 </li>
             </ul>
@@ -35,12 +42,8 @@
 
     <!-- Notifications Content -->
     <div class="container mt-4">
-        {% if error %}
-            <div class="alert alert-danger" role="alert">{{ error }}</div>
-        {% elif message %}
+        {% if message %}
             <div id="message" class="alert alert-info" role="alert">{{ message }}</div>
-        {% else %}
-            <div id="message"></div>
         {% endif %}
     </div>
 
