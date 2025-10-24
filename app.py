@@ -111,28 +111,38 @@ def shot():
     return render_template("shot.html", result=result)
 
 
-@app.route('/upload/<name>', methods=['POST'])
-def upload_file(name):
+@app.route('/upload', methods=['GET', 'POST'])
+@login_required
+def upload_file():
     @copy_current_request_context
     def import_data_from_file_wrapper(filename, name):
-        import_data_from_file(filename, name)
-        socketio.emit('notifications', {'message': f"User {name} file import completed!"})
+        # import_data_from_file(filename, name)
+        print(f"FIXME Importing data for user {name} from file {filename}")
+        # FIXME: socketio.emit('notifications', {'message': f"User {name} file import completed!"})
 
-    if 'file' not in request.files:
-        return 'No file part in the request', 400
+    if request.method == "POST":
+        if 'file' not in request.files:
+            # FIXME: handle no file part
+            return 'No file part in the request', 400
 
-    file = request.files['file']
+        file = request.files['file']
 
-    if file.filename == '':
-        return 'No selected file', 400
+        if file.filename == '':
+            return 'No file selected', 400
 
-    name = ''.join(c for c in name if c.isalnum())
-    filename = os.path.join(app.config['UPLOAD_FOLDER'], str(uuid.uuid4()))
-    file.save(filename)
-    thread = threading.Thread(target=import_data_from_file_wrapper, args=(filename, name))
-    thread.start()
+        name = current_user.username # FIXME: enforce alphanumeric usernames only
+        filename = os.path.join(app.config['UPLOAD_FOLDER'], str(uuid.uuid4()))
+        file.save(filename)
+        thread = threading.Thread(target=import_data_from_file_wrapper, args=(filename, name))
+        thread.start()
 
-    return 'File uploaded successfully', 200
+        return render_template(
+            'dashboard.html',
+            message="File uploaded successfully! Data import in progress.",
+            username=current_user.username
+        )
+
+    return render_template('upload.html')
 
 
 # Protected dashboard route
@@ -151,7 +161,8 @@ def load_user(user_id):
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == "POST":
-        username = request.form.get("username")
+        # Sanitize username to be alphanumeric only
+        username = ''.join(c for c in request.form.get("username") if c.isalnum())
         password = request.form.get("password")
 
         if User.query.filter_by(username=username).first():
