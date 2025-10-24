@@ -1,9 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <link rel="icon" type="image/png" href="/static/favicon.png">
-  <title>ShotRecord - Precision Shooting Results, Visualized</title>
+{% extends "base.html" %}
+
+{% block title %}Series{% endblock %}
+
+{% block content %}
+
   <style>
     svg {
       background-color: #fff;
@@ -17,8 +17,7 @@
       pointer-events: none;
     }
   </style>
-</head>
-<body>
+
   <svg id="mySVG" width="600" height="500">
     <div id="tooltip" style="
         position: absolute;
@@ -34,7 +33,7 @@
 
   <script src="/static/d3.min.js"></script>
   <script src="/static/series.js"></script>
-  <h2>{{ series.description }} Series {{ series.id }} User {{ series.name }}</h2>
+  <h2>{{ series.description }} Series {{ series.id }} User {{ current_user.username }}</h2>
   <p>Created at: {{ series.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
   <p>Total points: {{ series.total_points }}</p>
   <p>Average points per shot: {{ '%.2f' % (series.total_points / series.n) }}</p>
@@ -84,5 +83,5 @@
       };
       create_series_plot(seriesData);
     </script>
-</body>
-</html>
+
+{% endblock %}

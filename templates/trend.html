@@ -1,9 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <link rel="icon" type="image/png" href="/static/favicon.png">
-  <title>ShotRecord - Precision Shooting Results, Visualized</title>
+{% extends "base.html" %}
+
+{% block title %}Trend{% endblock %}
+
+{% block content %}
 
   <style>
     svg {
@@ -18,8 +17,7 @@
     .x-axis .tick line { display: none; }
     .x-axis path.domain { display: none; }
   </style>
-</head>
-<body>
+
   <svg width="800" height="400"></svg>
   <script src="/static/d3.min.js"></script>
   <script>
@@ -87,5 +85,5 @@
       .attr("opacity", 0.5)
       .attr("d", line);
   </script>
-</body>
-</html>
+
+{% endblock %}

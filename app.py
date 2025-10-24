@@ -73,9 +73,9 @@ def get_series_points(name):
     return render_template("points.html", name=name, data=data)
 
 
-@app.route("/trend/<name>", methods=['GET'])
+@app.route('/trend', methods=['GET'])
 @login_required
-def get_series_trend(name):
+def get_series_trend():
     results = (
         db.session.query(Series.total_points)
         .filter(Series.user_id == current_user.id)
@@ -84,24 +84,25 @@ def get_series_trend(name):
     )
 
     if not results:
-        abort(404, description=f"No series found for user '{name}'")
+        abort(404, description=f"No series found for user '{current_user.username}'")
 
     data = [round(r.total_points, 1) for r in results]
 
-    return render_template("trend.html", name=name, data=data)
+    return render_template("trend.html", data=data)
 
 
 @app.route('/series/<int:series_id>', methods=['GET'])
+@login_required
 def get_series(series_id):
     series = (
         db.session.query(Series)
         .options(joinedload(Series.shots))
-        .filter(Series.id == series_id)
+        .filter(Series.id == series_id, Series.user_id == current_user.id)
         .first()
     )
 
     if not series:
-        abort(404, description="Series not found")
+        abort(404, description='Series not found')
 
     return render_template('series.html', series=series)
 
