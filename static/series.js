@@ -1,3 +1,52 @@
+
+// drawCrosshair(svgSelection, cfg)
+// cfg: { x0, y0, armLength, gap, stroke, strokeWidth, id }
+function drawCrosshair(svg, cfg) {
+  const g = svg.append("g").attr("id", cfg.id || `crosshair-${Date.now()}`);
+
+  // horizontal left
+  g.append("line")
+    .attr("x1", cfg.x0 - cfg.armLength)
+    .attr("x2", cfg.x0 - cfg.gap)
+    .attr("y1", cfg.y0)
+    .attr("y2", cfg.y0)
+    .attr("stroke", cfg.stroke)
+    .attr("stroke-width", cfg.strokeWidth)
+    .attr("stroke-linecap", "butt");
+
+  // horizontal right
+  g.append("line")
+    .attr("x1", cfg.x0 + cfg.gap)
+    .attr("x2", cfg.x0 + cfg.armLength)
+    .attr("y1", cfg.y0)
+    .attr("y2", cfg.y0)
+    .attr("stroke", cfg.stroke)
+    .attr("stroke-width", cfg.strokeWidth)
+    .attr("stroke-linecap", "butt");
+
+  // vertical top
+  g.append("line")
+    .attr("x1", cfg.x0)
+    .attr("x2", cfg.x0)
+    .attr("y1", cfg.y0 - cfg.armLength)
+    .attr("y2", cfg.y0 - cfg.gap)
+    .attr("stroke", cfg.stroke)
+    .attr("stroke-width", cfg.strokeWidth)
+    .attr("stroke-linecap", "butt");
+
+  // vertical bottom
+  g.append("line")
+    .attr("x1", cfg.x0)
+    .attr("x2", cfg.x0)
+    .attr("y1", cfg.y0 + cfg.gap)
+    .attr("y2", cfg.y0 + cfg.armLength)
+    .attr("stroke", cfg.stroke)
+    .attr("stroke-width", cfg.strokeWidth)
+    .attr("stroke-linecap", "butt");
+
+  return g;
+}
+
 // Target is hardcoded for Ecoaims 10m air pistol system in this version.
 function create_series_plot(series) {
   const svg = d3.select("#mySVG");
@@ -64,6 +113,18 @@ function create_series_plot(series) {
       .attr("fill", "none")
       .attr("stroke", "#000000");
   });
+
+  // Draw the mean point of impact (MPI)
+  const cfg = {
+    x0: series.mpi_x,
+    y0: series.mpi_y,
+    armLength: 60,    // length from center to end of each arm
+    gap: 4,            // gap around center (set 0 for continuous lines)
+    stroke: "#ffa500",
+    strokeWidth: 1,
+    id: "crosshairs-1"
+  };
+  drawCrosshair(svg, cfg);
 
   // Shot markers and points for each shot
   const shotTuples = series.shots.map(shot => [shot.x, shot.y]);

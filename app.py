@@ -96,8 +96,7 @@ def get_series_trend():
 def get_series(series_id):
     series = (
         db.session.query(Series)
-        .options(joinedload(Series.shot))
-        .options(joinedload(Series.metric))
+        .options(joinedload(Series.shot), joinedload(Series.metric))
         .filter(Series.id == series_id, Series.user_id == current_user.id)
         .first()
     )

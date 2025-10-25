@@ -98,7 +98,9 @@
           t: {{ shot.t }}
         }{% if not loop.last %},{% endif %}
         {% endfor %}
-      ]
+      ],
+      mpi_x: {{ series.metric | selectattr('name','equalto','MPI_x') | map(attribute='value') | list | first | default(0) }},
+      mpi_y: {{ series.metric | selectattr('name','equalto','MPI_y') | map(attribute='value') | list | first | default(0) }}
     };
     create_series_plot(seriesData);
   </script>
