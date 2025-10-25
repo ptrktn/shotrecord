@@ -2,23 +2,30 @@
 import math
 from itertools import combinations
 
-def compute_metrics(shots, s_ref=50.0):
-    # shots: list of (x, y) in consistent units (e.g., mm at known range)
+
+def population_variance(data):
+    """Calculate the population variance of a list of numbers."""
+    if len(data) == 0:
+        return 0.0
+    mean = sum(data) / len(data)
+    return sum((x - mean) ** 2 for x in data) / len(data)
+
+
+def compute_metrics(shots, points, s_ref=50.0):
     n = len(shots)
     xs = [p[0] for p in shots]
     ys = [p[1] for p in shots]
 
     mx = sum(xs) / n
     my = sum(ys) / n
-
-    r = [math.hypot(x-mx, y-my) for x,y in shots]
+    r = [math.hypot(x-mx, y-my) for x, y in shots]
     mr = sum(r) / n
     rsd = math.sqrt(sum((ri - mr)**2 for ri in r) / n)
     rms = math.sqrt(sum(ri*ri for ri in r) / n)
 
     # extreme spread (max center-to-center distance)
     extreme = 0.0
-    for (x1,y1),(x2,y2) in combinations(shots,2):
+    for (x1, y1), (x2, y2) in combinations(shots, 2):
         d = math.hypot(x1-x2, y1-y2)
         if d > extreme:
             extreme = d
@@ -33,9 +40,6 @@ def compute_metrics(shots, s_ref=50.0):
         "RadialStdDev": rsd,
         "RMS": rms,
         "ExtremeSpread": extreme,
-        "ConsistencyPct": consistency
+        "ConsistencyPct": consistency,
+        "PointsVariance": population_variance(points)
     }
-
-# Example
-# shots = [(12.3, -3.2), (11.8, -2.9), (12.7, -3.5), (11.9, -3.0)]
-# print(compute_metrics(shots, s_ref=30.0))

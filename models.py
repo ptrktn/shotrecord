@@ -18,7 +18,6 @@ class Series(db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     total_points = db.Column(db.Float, nullable=False)
     n = db.Column(db.Integer, nullable=False)
-    variance = db.Column(db.Float, nullable=False)
     total_t = db.Column(db.Float, nullable=True)
     user = db.relationship('User', backref=db.backref('series', lazy=True))
 
@@ -55,7 +54,7 @@ class User(UserMixin, db.Model):
 class Metric(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     series_id = db.Column(db.Integer, db.ForeignKey('series.id'), nullable=False, index=True)
-    name = db.Column(db.String(64), nullable=False)
+    name = db.Column(db.String(64), nullable=False, index=True)
     value = db.Column(db.Float, nullable=False)
     series = db.relationship('Series', backref=db.backref('metric', lazy=True))
 
