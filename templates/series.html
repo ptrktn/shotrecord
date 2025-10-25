@@ -54,7 +54,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for shot in series.shots %}
+      {% for shot in series.shot %}
       <tr>
         <td>{{ shot.shotnum }}</td>
         <td>{{ shot.points }}</td>
@@ -66,22 +66,41 @@
       {% endfor %}
     </tbody>
   </table>
-    <script>
-      const seriesData = {
-        shots: [
-          {% for shot in series.shots %}
-          {
-            shotnum: {{ shot.shotnum }},
-            points: {{ shot.points }},
-            hit: {{ shot.hit }},
-            x: {{ shot.x }},
-            y: {{ shot.y }},
-            t: {{ shot.t }}
-          }{% if not loop.last %},{% endif %}
-          {% endfor %}
-        ]
-      };
-      create_series_plot(seriesData);
-    </script>
+
+    <h3>Metrics</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for metric in series.metric %}
+      <tr>
+        <td>{{ metric.name }}</td>
+        <td>{{ metric.value }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <script>
+    const seriesData = {
+      shots: [
+        {% for shot in series.shot %}
+        {
+          shotnum: {{ shot.shotnum }},
+          points: {{ shot.points }},
+          hit: {{ shot.hit }},
+          x: {{ shot.x }},
+          y: {{ shot.y }},
+          t: {{ shot.t }}
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+      ]
+    };
+    create_series_plot(seriesData);
+  </script>
 
 {% endblock %}

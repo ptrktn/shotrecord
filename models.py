@@ -26,7 +26,7 @@ class Series(db.Model):
         return f"<Series {self.id}>"
 
 
-class Shots(db.Model):
+class Shot(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     series_id = db.Column(db.Integer, db.ForeignKey('series.id'), nullable=False, index=True)
     hit = db.Column(db.Integer, nullable=False)
@@ -37,7 +37,7 @@ class Shots(db.Model):
     origx = db.Column(db.Integer, nullable=True)
     origy = db.Column(db.Integer, nullable=True)
     t = db.Column(db.Float, nullable=True)
-    series = db.relationship('Series', backref=db.backref('shots', lazy=True))
+    series = db.relationship('Series', backref=db.backref('shot', lazy=True))
 
     def __repr__(self):
         return f"<Shot {self.id} in Series {self.series_id} at ({self.x}, {self.y})>"
@@ -47,3 +47,17 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(32), unique=True, nullable=False)
     password = db.Column(db.String(32), nullable=False)
+
+    def __repr__(self):
+        return f"<User {self.username}>"
+
+
+class Metric(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    series_id = db.Column(db.Integer, db.ForeignKey('series.id'), nullable=False, index=True)
+    name = db.Column(db.String(64), nullable=False)
+    value = db.Column(db.Float, nullable=False)
+    series = db.relationship('Series', backref=db.backref('metric', lazy=True))
+
+    def __repr__(self):
+        return f"<Metric {self.name}={self.value} for Series {self.series_id}>"

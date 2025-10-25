@@ -23,7 +23,7 @@ def create_app():
     # and defaults to a local SQLite file for development.
     basedir = os.path.abspath(os.path.dirname(__file__))
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
-        'DATABASE_URL_FIXME',
+        'DATABASE_URI',
         'sqlite:///' + os.path.join(basedir, 'instance', 'app.db')
     )
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -96,7 +96,8 @@ def get_series_trend():
 def get_series(series_id):
     series = (
         db.session.query(Series)
-        .options(joinedload(Series.shots))
+        .options(joinedload(Series.shot))
+        .options(joinedload(Series.metric))
         .filter(Series.id == series_id, Series.user_id == current_user.id)
         .first()
     )

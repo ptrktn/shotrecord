@@ -2,8 +2,8 @@ import sqlite3
 import json
 import os
 from datetime import datetime
-from models import db, Series, Shots
-
+from models import db, Series, Shot, Metric
+from metrics import compute_metrics
 
 def population_variance(data):
     """Calculate the population variance of a list of numbers."""
@@ -14,7 +14,6 @@ def population_variance(data):
 
 
 # Recursive function to find all "shot" elements
-# FIXME: this is duplicated in cli.py
 def extract_shots(obj):
     shots = []
     if isinstance(obj, dict):
@@ -88,9 +87,11 @@ def import_ecoaims_db(db_path, user_id):
         db.session.flush()  # Get the ID assigned by the database
         series_id = series.id
 
+        shot_coors = []
         for shot in shots:
             x, y = transform_coordinates(shot.get('x', 0), shot.get('y', 0), 'ecoaims')
-            new_shot = Shots(
+            shot_coors.append((x, y))
+            new_shot = Shot(
                 series_id=series_id,
                 hit=shot.get("hit", 0),
                 points=shot.get("points", 0.0),
@@ -103,6 +104,16 @@ def import_ecoaims_db(db_path, user_id):
             )
             db.session.add(new_shot)
         
+        # FIXME: s_ref should depend on the scale and target type
+        metrics = compute_metrics(shot_coors, s_ref=int(2.2 * 30.0))
+        for key, value in metrics.items():
+            metric = Metric(
+                series_id=series_id,
+                name=key,
+                value=value
+            )
+            db.session.add(metric)
+
         db.session.commit()
         print(f"User ID: {user_id}, Series ID: {series_id}, Created: {created_at}, Points: {total_points}, Time: {total_t}")
 
