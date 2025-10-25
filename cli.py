@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 import argparse
 
+debug = False
 
 def plot_shots(coordinates, filename="shot_coordinates.png", xcal=-20, ycal=10):
     """
@@ -74,13 +75,22 @@ def extract_shots(obj):
 
 
 def handle_ecoaims_db(db_path, game_id=None):
+    """Import data from an Ecoaims SQLite database file.
+    sqlite> .schema ekoaims_games
+        CREATE TABLE ekoaims_games (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            game TEXT NOT NULL,
+            settings TEXT NOT NULL,
+            created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    """
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
     if game_id:
-        cursor.execute("SELECT id, game, created FROM ekoaims_games WHERE id = ?", (game_id,))
+        cursor.execute("SELECT * FROM ekoaims_games WHERE id = ?", (game_id,))
     else:
-        cursor.execute("SELECT id, game, created FROM ekoaims_games ORDER BY created DESC")
+        cursor.execute("SELECT * FROM ekoaims_games ORDER BY created DESC")
 
     while True:
         row = cursor.fetchone()
@@ -88,7 +98,14 @@ def handle_ecoaims_db(db_path, game_id=None):
             break
 
         data = json.loads(row[1])  # Parse JSON string into Python dict
-        # print(json.dumps(data, indent=4))  # Pretty-print the JSON data
+
+        if debug:
+            print("ID: {row[0]} Created: {row[3]}")
+            print("Data:")
+            print(json.dumps(data, indent=4))
+            print("Settings:")
+            print(json.dumps(json.loads(row[2]), indent=4))
+
         coords = []
         all_shots = extract_shots(data)
         for shot in all_shots:
@@ -103,7 +120,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Create shot plots')
     parser.add_argument('--game_id', type=int, required=False, help='Ecoaims ID of the game to plot shots for')
     parser.add_argument('--ecoaims_db', type=str, required=True, help='Path to Ecoaims SQLite database file')
+    parser.add_argument('--debug', action='store_true', help='Enable debug mode')
     args = parser.parse_args()
+    debug = args.debug
 
     if args.ecoaims_db:
         handle_ecoaims_db(args.ecoaims_db, game_id=args.game_id)
