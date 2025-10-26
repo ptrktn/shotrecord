@@ -17,12 +17,13 @@
         </style>
 
         <div class="container table-container">
-        <table class="table table-bordered table-borderless">
+        <table class="table table-striped">
             <thead class="table-light">
             <tr>
                 <th>Date</th>
                 <th>Description</th>
                 <th>Points</th>
+                <th>Time</th>
                 <th>Mean Radius (a.u.)</th>
                 <th>Consistency (%)</th>
             </tr>
@@ -45,6 +46,7 @@
                     datetime: "{{ s.created_at }}",
                     description: "{{ s.description }}",
                     points: {{ s.total_points }}.toFixed(1),
+                    t: {{ s.total_t }}.toFixed(1),
                     precision: {{ s.metric | selectattr('name','equalto','MeanRadius') | map(attribute='value') | list | first | default(0) }}.toFixed(1),
                     consistency: {{ s.metric | selectattr('name','equalto','ConsistencyPct') | map(attribute='value') | list | first | default(0) }}.toFixed(1),
                     url: "/series/{{ s.id }}"
@@ -69,6 +71,7 @@
                         <td>${row.datetime}</td>
                         <td>${row.description}</td>
                         <td>${row.points}</td>
+                        <td>${row.t}</td>
                         <td>${row.precision}</td>
                         <td>${row.consistency}</td>
                     `;
