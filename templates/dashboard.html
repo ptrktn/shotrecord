@@ -4,8 +4,102 @@
 
 {% block content %}
 
-    <div class="container text-center">
-        <h1 class="text-success">You are logged in as {{ username }}!</h1>
-    </div>
+    {% if series %}
+        <style>
+            .pagination { justify-content: center; }
+            .table-container { margin-top: 30px; }
+            tr[data-href] {
+                cursor: pointer;
+            }
+            tr[data-href]:hover {
+                background-color: #f1f1f1;
+            }
+        </style>
+
+        <div class="container table-container">
+        <table class="table table-bordered table-borderless">
+            <thead class="table-light">
+            <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Points</th>
+                <th>Mean Radius (a.u.)</th>
+                <th>Consistency (%)</th>
+            </tr>
+            </thead>
+            <tbody id="table-body">
+            <!-- Rows will be injected here -->
+            </tbody>
+        </table>
+        <nav>
+            <ul class="pagination" id="pagination">
+            <!-- Pagination buttons will be injected here -->
+            </ul>
+        </nav>
+        </div>
+
+        <script>
+            const data = [
+                {% for s in series %}
+                {
+                    datetime: "{{ s.created_at }}",
+                    description: "{{ s.description }}",
+                    points: {{ s.total_points }}.toFixed(1),
+                    precision: {{ s.metric | selectattr('name','equalto','MeanRadius') | map(attribute='value') | list | first | default(0) }}.toFixed(1),
+                    consistency: {{ s.metric | selectattr('name','equalto','ConsistencyPct') | map(attribute='value') | list | first | default(0) }}.toFixed(1),
+                    url: "/series/{{ s.id }}"
+                }{% if not loop.last %},{% endif %}
+                {% endfor %}
+            ];
+
+            const rowsPerPage = 100;
+            let currentPage = 1;
+
+            function renderTable(page) {
+                const start = (page - 1) * rowsPerPage;
+                const end = start + rowsPerPage;
+                const slicedData = data.slice(start, end);
+
+                const tbody = document.getElementById("table-body");
+                tbody.innerHTML = "";
+                slicedData.forEach(row => {
+                    const tr = document.createElement("tr");
+                    tr.setAttribute("data-href", row.url);
+                    tr.innerHTML = `
+                        <td>${row.datetime}</td>
+                        <td>${row.description}</td>
+                        <td>${row.points}</td>
+                        <td>${row.precision}</td>
+                        <td>${row.consistency}</td>
+                    `;
+                    tr.addEventListener("click", () => {
+                        window.location.href = row.url;
+                    });
+                    tbody.appendChild(tr);
+                });
+            }
+
+            function renderPagination() {
+                const totalPages = Math.ceil(data.length / rowsPerPage);
+                const pagination = document.getElementById("pagination");
+                pagination.innerHTML = "";
+
+                for (let i = 1; i <= totalPages; i++) {
+                const li = document.createElement("li");
+                li.className = `page-item ${i === currentPage ? "active" : ""}`;
+                li.innerHTML = `<button class="page-link">${i}</button>`;
+                li.addEventListener("click", () => {
+                    currentPage = i;
+                    renderTable(currentPage);
+                    renderPagination();
+                });
+                pagination.appendChild(li);
+                }
+            }
+
+            renderTable(currentPage);
+            renderPagination();
+        </script>
+    {% endif %}
 
 {% endblock %}

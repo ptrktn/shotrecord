@@ -146,7 +146,16 @@ def upload_file():
 @login_required
 def dashboard():
     message = session.get('message', None)
-    return render_template("dashboard.html", username=current_user.username, message=message)
+    series = (
+        db.session.query(Series)
+        .filter(Series.user_id == current_user.id)
+        .options(joinedload(Series.metric))
+        .order_by(Series.created_at.desc())
+        .limit(1000)
+        .all()
+    )
+
+    return render_template("dashboard.html", message=message, series=series)
 
 
 # Load user for Flask-Login
