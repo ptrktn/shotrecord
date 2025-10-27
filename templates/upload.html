@@ -4,19 +4,21 @@
 
 {% block content %}
 
-    <h1 class="mb-4 text-success">Upload a File</h1>
+    <div class="container">
+        <h1 class="mb-4 text-success">Upload a File</h1>
 
-    {% if message %}
-        <div class="alert alert-info">{{ message }}</div>
-    {% endif %}
+        {% if message %}
+            <div class="alert alert-info">{{ message }}</div>
+        {% endif %}
 
-    <form action="/upload" method="post" enctype="multipart/form-data">
-        <div class="mb-3">
-            <label for="file" class="form-label">Choose a file:</label>
-            <input class="form-control" type="file" id="file" name="file" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Upload</button>
-    </form>
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="file" class="form-label">Choose a file:</label>
+                <input class="form-control" type="file" id="file" name="file" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Upload</button>
+        </form>
+    </div>
 
 {% endblock %}
 

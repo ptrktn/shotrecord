@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+
+  <style>
+    /* Layout: full-height app frame */
+    html, body {
+      height: 100%;
+    }
+    .app {
+      min-height: 100%;
+    }
+
+    /* Sidebar: fixed width, vertical scrolling */
+    .sidebar {
+      width: 280px;
+      max-height: 100vh;        /* lock to viewport height */
+      overflow-y: auto;          /* enable scrollbar */
+      border-right: 1px solid #dee2e6;
+    }
+
+    /* Main content: scrollable area for Scrollspy */
+    .content {
+      height: 100vh;
+      overflow-y: auto;
+      padding: 1.5rem;
+    }
+
+    /* Optional: make section spacing clear */
+    section {
+      padding: 2rem 0;
+      border-bottom: 1px solid #eee;
+    }
+  </style>
+ 
+  <div class="d-flex">
+    <!-- Sidebar List Group -->
+    <div class="sidebar-container" style="height: 100vh; overflow-y: auto;">
+      <div class="list-group" id="sidebar">
+          {% for s in series %}
+              <a href="#" class="list-group-item list-group-item-action" data-content="{{ s.id }}">
+                  <div class="d-flex w-100 justify-content-between">
+                      <h5 class="mb-1">Points: {{ s.total_points | round(1) }}</h5></h5>
+                      <small><i>{{ s.total_t | round(1) }}s</i></small>
+                  </div>
+                  <p class="mb-1">{{ s.created_at }}</p>        
+                  <small>{{ s.description }}</small>
+              </a>
+          {% endfor %}
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="flex-grow-1 p-3" id="main-content"></div>
+  </div>
+
+  <script>
+    function loadFirst() {
+      document.querySelector('#sidebar .list-group-item').classList.add('active');
+      series_id = document.querySelector('#sidebar .list-group-item').getAttribute('data-content');
+      fetch(`/fragment/target/${series_id}`)
+        .then(response => response.text())
+        .then(html => {
+          const target = document.getElementById('main-content');
+          target.innerHTML = html;
+          
+          // Re-execute any script tags
+          target.querySelectorAll('script').forEach(oldScript => {
+              const newScript = document.createElement('script');
+              newScript.textContent = oldScript.textContent;
+              document.body.appendChild(newScript);
+              document.body.removeChild(newScript); // Optional cleanup
+          });
+      });
+    }
+
+    document.querySelectorAll('#sidebar .list-group-item').forEach(item => {
+      item.addEventListener('click', function (e) {
+        e.preventDefault();
+
+        // Remove active class from all
+        document.querySelectorAll('#sidebar .list-group-item').forEach(i => i.classList.remove('active'));
+
+        // Add active class to clicked item
+        this.classList.add('active');
+
+        // Load content
+        const series_id = this.getAttribute('data-content');
+        console.log(`Loading Series ID ${series_id}`);
+        // document.getElementById('main-content').innerHTML = contentMap[key] || `<p>Content not found.</p>`;
+        const section = this.getAttribute('data-section');
+        fetch(`/fragment/target/${series_id}`)
+          .then(response => response.text())
+          .then(html => {
+            const target = document.getElementById('main-content');
+            target.innerHTML = html;
+            
+            // Re-execute any script tags
+            target.querySelectorAll('script').forEach(oldScript => {
+                const newScript = document.createElement('script');
+                newScript.textContent = oldScript.textContent;
+                document.body.appendChild(newScript);
+                document.body.removeChild(newScript); // Optional cleanup
+            });
+        });
+      });
+    });
+
+    // Initialize Scrollspy via JS (optional if using data attributes)
+    const scrollElement = document.querySelector('.content');
+    if (scrollElement) {
+      new bootstrap.ScrollSpy(scrollElement, {
+        target: '#sidebarList',
+        offset: 0
+      });
+    }
+
+    loadFirst();
+  </script>
+
+{% endblock %}

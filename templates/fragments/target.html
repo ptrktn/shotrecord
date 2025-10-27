@@ -1,0 +1,103 @@
+{% if series %}
+
+  <style>
+    svg {
+      background-color: #fff;
+      display: block;
+      margin: 20px auto;
+      border: 1px solid #ccc;
+    }
+    text {
+      font-family: sans-serif;
+      font-size: 10px;
+      pointer-events: none;
+    }
+  </style>
+
+  <svg id="mySVG" width="600" height="500">
+    <div id="tooltip" style="
+        position: absolute;
+        background: #fff;
+        border: 1px solid #333;
+        padding: 4px 8px;
+        font-size: 12px;
+        font-family: sans-serif;
+        pointer-events: none;
+        visibility: hidden;">
+    </div> 
+  </svg>
+
+  <h2>{{ series.description }} Series {{ series.id }}</h2>
+  <p>Created at: {{ series.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+  <p>Total points: {{ series.total_points }}</p>
+  <p>Average points per shot: {{ '%.2f' % (series.total_points / series.n) }}</p>
+  <p>Total time: {{ series.total_t }} seconds</p>
+  <p>Number of shots: {{ series.n }}</p>
+  <p>Points variance: {{ series.variance }}</p>
+
+  <h3>Shots</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Points</th>
+        <th>Hit</th>
+        <th>X</th>
+        <th>Y</th>
+        <th>Time</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for shot in series.shot %}
+      <tr>
+        <td>{{ shot.shotnum }}</td>
+        <td>{{ shot.points }}</td>
+        <td>{{ shot.hit }}</td>
+        <td>{{ shot.x }}</td>
+        <td>{{ shot.y }}</td>
+        <td>{{ shot.t }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+    <h3>Metrics</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for metric in series.metric %}
+      <tr>
+        <td>{{ metric.name }}</td>
+        <td>{{ metric.value }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <script>
+    var seriesData = {
+      shots: [
+        {% for shot in series.shot %}
+        {
+          shotnum: {{ shot.shotnum }},
+          points: {{ shot.points }},
+          hit: {{ shot.hit }},
+          x: {{ shot.x }},
+          y: {{ shot.y }},
+          t: {{ shot.t }}
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+      ],
+      mpi_x: {{ series.metric | selectattr('name','equalto','MPI_x') | map(attribute='value') | list | first | default(0) }},
+      mpi_y: {{ series.metric | selectattr('name','equalto','MPI_y') | map(attribute='value') | list | first | default(0) }}
+    };
+
+    create_series_plot(seriesData);
+  </script>
+
+{% endif %}

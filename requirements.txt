@@ -3,5 +3,6 @@ Flask-SQLAlchemy
 flask_socketio
 flask_login
 werkzeug
+matplotlib
 gunicorn
 eventlet

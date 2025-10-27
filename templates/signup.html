@@ -4,24 +4,26 @@
 
 {% block content %}
 
-    <h1 class="text-success mb-4">Create an account</h1>
+    <div class="container">
+        <h1 class="text-success mb-4">Create an account</h1>
 
-    {% if error %}
-        <div class="alert alert-danger" role="alert">
-            {{ error }}
-        </div>
-    {% endif %}
+        {% if error %}
+            <div class="alert alert-danger" role="alert">
+                {{ error }}
+            </div>
+        {% endif %}
 
-    <form action="/signup" method="post" class="needs-validation" novalidate>
-        <div class="mb-3">
-            <label for="username" class="form-label">Username:</label>
-            <input type="text" name="username" class="form-control" id="username" required>
-        </div>
-        <div class="mb-3">
-            <label for="password" class="form-label">Password:</label>
-            <input type="password" name="password" class="form-control" id="password" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Sign Up</button>
-    </form>
+        <form action="/signup" method="post" class="needs-validation" novalidate>
+            <div class="mb-3">
+                <label for="username" class="form-label">Username:</label>
+                <input type="text" name="username" class="form-control" id="username" required>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password:</label>
+                <input type="password" name="password" class="form-control" id="password" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Sign Up</button>
+        </form>
+    </div>
 
 {% endblock %}
