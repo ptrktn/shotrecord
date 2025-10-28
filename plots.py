@@ -9,7 +9,7 @@ def weekly_series_plot(formatted):
     counts = [entry['count'] for entry in formatted]
     tick_spacing = 4  # or any spacing that suits your data density
 
-    fig, ax = plt.subplots(figsize=(10, 4))
+    fig, ax = plt.subplots(figsize=(10, 3))
 
     ax.bar(range(len(weeks)), counts, width=0.8, color='slateblue')
     ax.set_xticks(range(0, len(weeks), tick_spacing))
