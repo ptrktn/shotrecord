@@ -11,14 +11,12 @@ from data_importer import import_data_from_file
 from sqlalchemy.orm import joinedload
 from sqlalchemy import func, extract
 from werkzeug.security import generate_password_hash, check_password_hash
-import matplotlib.pyplot as plt
-from matplotlib.patches import Circle
 import os
 import uuid
 import threading
 from datetime import datetime, timedelta
 from collections import defaultdict
-from io import BytesIO
+from plots import weekly_series_plot
 
 def create_app():
     # Create the Flask application instance
@@ -146,105 +144,45 @@ def upload_file():
     return render_template('upload.html')
 
 
-def generate_histogram(bins, counts):
-    fig, ax = plt.subplots(figsize=(8, 4))
-    ax.step(bins, counts, where='mid')
-    # ax.set_xlabel('Month')
-    ax.set_ylabel('Count')
-    # ax.set_title('Monthly Series Count')
-    # Remove top and right spines
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-
-    buf = BytesIO()
-    plt.savefig(buf, format='png')
-    buf.seek(0)
-    plt.close(fig)
-
-    return buf
-
-
 @app.route('/fragment/training')
 @login_required
 def training():
-    now = datetime.utcnow()
-    start_date = now.replace(day=1) - timedelta(days=365)
+    end_date = datetime.utcnow()
+    start_date = end_date - timedelta(weeks=52)
 
-    # Query: group by year and month
-    monthly_counts = (
-        db.session.query(
-            extract('year', Series.created_at).label('year'),
-            extract('month', Series.created_at).label('month'),
-            func.count().label('count')
-        )
-        .filter(Series.created_at >= start_date)
-        .group_by('year', 'month')
-        .order_by('year', 'month')
+    # Start from the Monday of the first week
+    start_monday = start_date - timedelta(days=start_date.weekday())
+    all_weeks = []
+    current = start_monday
+
+    while current <= end_date:
+        iso_year, iso_week, _ = current.isocalendar()
+        all_weeks.append((iso_year, iso_week))
+        current += timedelta(weeks=1)
+
+    # Query timestamps
+    timestamps = (
+        db.session.query(Series.created_at)
+        .filter(Series.created_at >= start_monday)
         .all()
     )
 
-    # Optional: format into a dictionary or list
-    results = defaultdict(int)
-    for year, month, count in monthly_counts:
-        results[f"{int(year)}-{int(month):02d}"] = count
+    # Count by ISO week
+    actual_counts = defaultdict(int)
+    # Iterate over dates
+    for dt in [ts[0] for ts in timestamps]:
+        year_week = dt.isocalendar()[:2]
+        actual_counts[year_week] += 1
 
-    # If you want to ensure all 12 months are present:
-    from dateutil.relativedelta import relativedelta
+    formatted = [
+        {
+            'week': f'{year}-W{week:02d}',
+            'count': actual_counts.get((year, week), 0)
+        }
+        for (year, week) in all_weeks
+    ]
 
-    filled_results = {}
-    for i in range(12):
-        dt = now.replace(day=1) - relativedelta(months=i)
-        key = f"{dt.year}-{dt.month:02d}"
-        filled_results[key] = results.get(key, 0)
-
-    # Reverse to chronological order
-    data = dict(sorted(filled_results.items()))
-    img_buf = generate_histogram(data.keys(), data.values())
-
-    return send_file(img_buf, mimetype='image/png')
-
-
-def generate_target(series):
-    coords = [(i.x, i.y) for i in series.shot]  # FIXME: ensure shots are in order
-    fig, ax = plt.subplots(figsize=(6, 5))
-    n = 11
-    xscale = 2.2
-    ring = Circle((300, 250), radius=int(0.5 * 59.5 * xscale), fill=True, facecolor='black', edgecolor='black', linewidth=1)
-    ax.add_patch(ring)
-    xcal = 0
-    ycal = 0
-
-    for i in [5, 11.5, 27.5, 43.5, 59.5, 75.5, 91.5, 107.5, 123.5, 139.5, 155.5]:
-        if n > 7:
-            edgecolor = 'white'
-        else:
-            edgecolor = 'black'
-
-        ring = Circle((300, 250), radius=int(0.5 * i * xscale), fill=False, edgecolor=edgecolor, linewidth=1)
-        ax.add_patch(ring)
-        n -= 1
-
-    # Plot each shot as a circle
-    num = 0
-    for (x, y) in coords:
-        num += 1
-        circle = Circle((x + xcal, y + ycal), radius=9, fill=True, facecolor='yellow', edgecolor='black', linewidth=1)
-        ax.add_patch(circle)
-        ax.annotate(str(num), (x + xcal, y + ycal), color='blue', fontsize=7, ha='center', va='center')
-
-    ax.set_xlim(0, 600)
-    ax.set_ylim(0, 500)
-    ax.set_aspect('equal', adjustable='box')
-    ax.axes.invert_yaxis()
-    ax.axis('off')  # Turn off the axis
-    buf = BytesIO()
-    plt.savefig(buf, format='png')
-    buf.seek(0)
-    plt.close(fig)
-
-    return buf
+    return send_file(weekly_series_plot(formatted), mimetype='image/png')
 
 
 @app.route('/fragment/target/<int:series_id>')

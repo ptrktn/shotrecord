@@ -1,5 +1,4 @@
-<div>Records by month</div>
-<div id="image-container"></div>
+<div id="training-image-container"></div>
 
 <script>
   async function loadImage(id=null) {
@@ -13,7 +12,7 @@
       img.alt = `Image ${id}`;
       img.style.maxWidth = '100%';
 
-      const container = document.getElementById('image-container');
+      const container = document.getElementById('training-image-container');
       container.innerHTML = ''; // Clear previous content
       container.appendChild(img);
     } else {
