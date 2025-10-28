@@ -1,22 +1,23 @@
 # Workaround for compatibility issues with eventlet and Flask-SocketIO
-import eventlet
-eventlet.monkey_patch()
 
-from flask import Flask, render_template, request, redirect, url_for, copy_current_request_context, jsonify
-from flask import abort, session, send_file
-from flask_login import LoginManager, login_user, login_required, logout_user, current_user
-from flask_socketio import SocketIO, send, emit
-from models import db, Series, User
-from data_importer import import_data_from_file
-from sqlalchemy.orm import joinedload
-from sqlalchemy import func, extract
-from werkzeug.security import generate_password_hash, check_password_hash
-import os
-import uuid
-import threading
-from datetime import datetime, timedelta
-from collections import defaultdict
+import eventlet  # nopep8
+eventlet.monkey_patch()  # nopep8
+
 from plots import weekly_series_plot, generate_target
+from collections import defaultdict
+from datetime import datetime, timedelta
+import threading
+import uuid
+import os
+from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy import func, extract
+from sqlalchemy.orm import joinedload
+from data_importer import import_data_from_file
+from models import db, Series, User
+from flask_socketio import SocketIO, send, emit
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
+from flask import abort, session, send_file
+from flask import Flask, render_template, request, redirect, url_for, copy_current_request_context, jsonify
 
 
 def create_app():
@@ -33,7 +34,7 @@ def create_app():
     )
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['UPLOAD_FOLDER'] = os.path.join(basedir, 'uploads')
-    app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 # 16 MB
+    app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', str(uuid.uuid4()))
 
     # Initialize the Flask-SQLAlchemy extension
@@ -89,7 +90,8 @@ def get_series_trend():
     )
 
     if not results:
-        abort(404, description=f"No series found for user '{current_user.username}'")
+        abort(
+            404, description=f"No series found for user '{current_user.username}'")
 
     data = [round(r.total_points, 1) for r in results]
 
@@ -137,7 +139,8 @@ def upload_file():
 
         filename = os.path.join(app.config['UPLOAD_FOLDER'], str(uuid.uuid4()))
         file.save(filename)
-        thread = threading.Thread(target=import_data_from_file_wrapper, args=(filename, current_user.id))
+        thread = threading.Thread(
+            target=import_data_from_file_wrapper, args=(filename, current_user.id))
         thread.start()
         session['message'] = 'File uploaded successfully! Data import in progress.'
 
@@ -222,7 +225,13 @@ def fragment_target(series_id):
 @app.route("/dashboard")
 @login_required
 def dashboard():
-    return render_template("dashboard.html")
+    series_count = db.session.query(
+        func.count(Series.id)).filter(Series.user_id == current_user.id).scalar()
+    params = {
+        "series_count": series_count
+    }
+
+    return render_template("dashboard.html", params=params)
 
 
 @app.route("/results")
@@ -251,7 +260,8 @@ def load_user(user_id):
 def signup():
     if request.method == "POST":
         # Sanitize username to be alphanumeric only
-        username = ''.join(c for c in request.form.get("username") if c.isalnum())
+        username = ''.join(c for c in request.form.get(
+            "username") if c.isalnum())
         password = request.form.get("password")
 
         if len(username) == 0 or len(password) == 0:
@@ -272,14 +282,15 @@ def signup():
         if User.query.filter_by(username=username).first():
             return render_template("signup.html", error="Username already taken!")
 
-        hashed_password = generate_password_hash(password, method="pbkdf2:sha256")
+        hashed_password = generate_password_hash(
+            password, method="pbkdf2:sha256")
 
         new_user = User(username=username, password=hashed_password)
         db.session.add(new_user)
         db.session.commit()
 
         return redirect(url_for("login"))
-    
+
     return render_template("signup.html")
 
 

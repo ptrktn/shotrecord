@@ -5,8 +5,13 @@
 {% block content %}
 
     <div class="container">
-
-        {% include "fragments/training.html" %}
+        {% if params['series_count'] > 0 %}
+            {% include "fragments/training.html" %}
+        {% else %}
+            <div class="alert alert-danger" role="alert">
+                No data found. Go to the <a href="/upload">upload</a> page to get started.
+            </div>
+        {% endif %}
 
     </div>
 
