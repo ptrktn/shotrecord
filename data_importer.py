@@ -42,8 +42,9 @@ def import_ecoaims_db(db_path, user_id):
     """
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    cursor.execute("SELECT id, game, created FROM ekoaims_games ORDER BY id ASC")
-    
+    cursor.execute(
+        "SELECT id, game, created FROM ekoaims_games ORDER BY id ASC")
+
     n_skipped = 0
 
     while True:
@@ -81,7 +82,8 @@ def import_ecoaims_db(db_path, user_id):
 
         shots_xy = []
         for shot in shots:
-            x, y = transform_coordinates(shot.get('x', 0), shot.get('y', 0), 'ecoaims')
+            x, y = transform_coordinates(
+                shot.get('x', 0), shot.get('y', 0), 'ecoaims')
             shots_xy.append((x, y))
             new_shot = Shot(
                 series_id=series_id,
@@ -95,12 +97,12 @@ def import_ecoaims_db(db_path, user_id):
                 t=shot.get("time", 0.0)
             )
             db.session.add(new_shot)
-        
+
         # FIXME: s_ref should depend on the scale and target type
         metrics = compute_metrics(
             shots_xy,
-            [shot.get("points", 0.0) for shot in shots],
-            s_ref=int(2.2 * 15) # 30 (beginner), 15 (intermediate), 7 (advanced), 4 (elite)
+            # 30 (beginner), 15 (intermediate), 7 (advanced), 4 (elite)
+            s_ref=int(2.2 * 15)
         )
 
         for key, value in metrics.items():
@@ -112,11 +114,14 @@ def import_ecoaims_db(db_path, user_id):
             db.session.add(metric)
 
         db.session.commit()
-        print(f"User ID: {user_id}, Series ID: {series_id}, Created: {created_at}, Points: {total_points}, Time: {total_t}")
+
+        print(f"User ID: {user_id}, Series ID: {series_id}, Created: {created_at}, "
+              f"Points: {total_points}, Time: {total_t}")
 
     conn.close()
 
-    print(f"User ID {user_id} import completed, skipped {n_skipped} existing series")
+    print(f"User ID {user_id} import completed, "
+          f"skipped {n_skipped} existing series")
 
 
 # FIXME: currently only imports Ecoaims DBs
@@ -127,4 +132,3 @@ def import_data_from_file(filepath, user_id):
     print("Data import completed")
     os.unlink(filepath)  # Delete the file after import
     print(f"Deleted temporary file {filepath}")
-

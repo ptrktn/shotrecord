@@ -5,15 +5,7 @@ import math
 from itertools import combinations
 
 
-def population_variance(data):
-    """Calculate the population variance of a list of numbers."""
-    if len(data) == 0:
-        return 0.0
-    mean = sum(data) / len(data)
-    return sum((x - mean) ** 2 for x in data) / len(data)
-
-
-def compute_metrics(shots, points, s_ref=50.0):
+def compute_metrics(shots, s_ref=50.0):
     n = len(shots)
     xs = [p[0] for p in shots]
     ys = [p[1] for p in shots]
@@ -33,15 +25,15 @@ def compute_metrics(shots, points, s_ref=50.0):
             extreme = d
 
     # simple consistency score: clamp to [0,100]
+    # TODO: s_ref is user-specific
     consistency = max(0.0, 100.0 * (1.0 - rsd / s_ref))
 
     return {
-        "MPI_x": mx, 
+        "MPI_x": mx,
         "MPI_y": my,
         "MeanRadius": mr,
         "RadialStdDev": rsd,
         "RMS": rms,
         "ExtremeSpread": extreme,
-        "ConsistencyPct": consistency,
-        "PointsVariance": population_variance(points)
+        "ConsistencyPct": consistency
     }
