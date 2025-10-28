@@ -45,7 +45,7 @@
                       <h5 class="mb-1">Points: {{ s.total_points | round(1) }}</h5></h5>
                       <small><i>{{ s.total_t | round(1) }}s</i></small>
                   </div>
-                  <p class="mb-1">{{ s.created_at }}</p>        
+                  <p class="mb-1">{{ s.created_at_local }}</p>
                   <small>{{ s.description }}</small>
               </a>
           {% endfor %}

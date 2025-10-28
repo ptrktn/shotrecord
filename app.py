@@ -1,11 +1,10 @@
 # Workaround for compatibility issues with eventlet and Flask-SocketIO
-
 import eventlet  # nopep8
 eventlet.monkey_patch()  # nopep8
 
 from plots import weekly_series_plot, generate_target
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import threading
 import uuid
 import os
@@ -148,6 +147,8 @@ def upload_file():
 
     return render_template('upload.html')
 
+# TODO: use local time
+
 
 @app.route('/fragment/training')
 @login_required
@@ -246,6 +247,19 @@ def results():
         .limit(1000)
         .all()
     )
+
+    for s in series:
+        created = getattr(s, "created_at", None)
+        if created is None:
+            s.created_at_local = None
+            continue
+
+        # Ensure the timestamp is timezone-aware UTC, then convert to local time
+        if created.tzinfo is None:
+            created = created.replace(tzinfo=timezone.utc)
+
+        local_dt = created.astimezone()  # convert to system local timezone
+        s.created_at_local = local_dt.strftime("%Y-%m-%d %H:%M:%S")
 
     return render_template("results.html", message=message, series=series)
 
