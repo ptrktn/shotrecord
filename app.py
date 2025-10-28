@@ -16,7 +16,8 @@ import uuid
 import threading
 from datetime import datetime, timedelta
 from collections import defaultdict
-from plots import weekly_series_plot
+from plots import weekly_series_plot, generate_target
+
 
 def create_app():
     # Create the Flask application instance
@@ -43,6 +44,7 @@ def create_app():
         db.create_all()
 
     return app
+
 
 app = create_app()
 socketio = SocketIO(app)
@@ -185,6 +187,22 @@ def training():
     return send_file(weekly_series_plot(formatted), mimetype='image/png')
 
 
+@app.route('/target/<int:series_id>')
+@login_required
+def target(series_id):
+    series = (
+        db.session.query(Series)
+        .options(joinedload(Series.shot), joinedload(Series.metric))
+        .filter(Series.id == series_id, Series.user_id == current_user.id)
+        .first()
+    )
+
+    if not series:
+        abort(404, description='Series not found')
+
+    return send_file(generate_target(series), mimetype='image/png')
+
+
 @app.route('/fragment/target/<int:series_id>')
 @login_required
 def fragment_target(series_id):
@@ -221,6 +239,7 @@ def results():
     )
 
     return render_template("results.html", message=message, series=series)
+
 
 # Load user for Flask-Login
 @login_manager.user_loader
