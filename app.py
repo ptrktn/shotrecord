@@ -1,7 +1,3 @@
-# Workaround for compatibility issues with eventlet and Flask-SocketIO
-import eventlet  # nopep8
-eventlet.monkey_patch()  # nopep8
-
 from plots import weekly_series_plot, generate_target
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
@@ -13,7 +9,6 @@ from sqlalchemy import func, extract
 from sqlalchemy.orm import joinedload
 from data_importer import import_data_from_file
 from models import db, Series, User
-from flask_socketio import SocketIO, send, emit
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask import abort, session, send_file
 from flask import Flask, render_template, request, redirect, url_for, copy_current_request_context, jsonify
@@ -47,7 +42,6 @@ def create_app():
 
 
 app = create_app()
-socketio = SocketIO(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
@@ -125,7 +119,6 @@ def upload_file():
     @copy_current_request_context
     def import_data_from_file_wrapper(filename, user_id):
         import_data_from_file(filename, user_id)
-        # FIXME: socketio.emit('notifications', {'message': f"User {name} file import completed!"})
 
     if request.method == "POST":
         if 'file' not in request.files:
@@ -332,17 +325,6 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('login'))
-
-
-@socketio.on('connect')
-def handle_connect():
-    print('Client connected')
-
-
-@socketio.on('message')
-def handle_message(msg):
-    print('Received message: ' + msg)
-    socketio.send('Echo: ' + msg)
 
 
 if __name__ == '__main__':

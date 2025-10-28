@@ -3,15 +3,12 @@ all:
 	/bin/true
 
 .PHONY: deps
-deps: static/d3.min.js static/socket.io.min.js
+deps: static/d3.min.js
 	python3 -m venv venv
 	. venv/bin/activate && pip install -r requirements.txt
 
 static/d3.min.js:
 	curl -sL https://d3js.org/d3.v7.min.js > $@
-
-static/socket.io.min.js:
-	curl -sL https://cdn.socket.io/4.0.0/socket.io.min.js > $@
 
 .PHONY: run
 run:
