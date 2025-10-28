@@ -2,16 +2,41 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 from matplotlib.ticker import MaxNLocator
 from io import BytesIO
+import numpy as np
 
 
 def weekly_series_plot(formatted):
+
     weeks = [entry['week'] for entry in formatted]
     counts = [entry['count'] for entry in formatted]
     tick_spacing = 4  # or any spacing that suits your data density
 
     fig, ax = plt.subplots(figsize=(10, 3))
 
-    ax.bar(range(len(weeks)), counts, width=0.8, color='slateblue')
+    x = np.arange(len(weeks))  # use x-axis as an index
+    ax.bar(x, counts, width=0.8, color='slateblue')
+
+    # Ordinary Least Squares fit (linear regression)
+    slope = intercept = None
+    if len(x) >= 2:
+        slope, intercept = np.polyfit(x, counts, 1)
+        if slope < -0.2:
+            color = 'red'
+        elif slope < -0.1:
+            color = 'orange'
+        else:
+            color = 'green'
+
+        x_line = np.linspace(0, x[-1], 100)
+        y_line = intercept + slope * x_line
+        ax.plot(x_line, y_line, '-', color=color, linewidth=0.5, label='trend')
+
+        # show slope value on the plot
+        # ax.annotate(f"Slope: {slope:.2f} counts/index",
+        #             xy=(0.98, 0.95), xycoords='axes fraction',
+        #             ha='right', va='top', fontsize=9, color='red',
+        #             bbox=dict(boxstyle='round,pad=0.2', fc='white', alpha=0.8))
+
     ax.set_xticks(range(0, len(weeks), tick_spacing))
     ax.set_xticklabels(weeks[::tick_spacing],
                        rotation=45, ha='right', fontsize=8)
@@ -19,6 +44,12 @@ def weekly_series_plot(formatted):
     ax.set_title('Weekly Series Count', fontsize=10)
     ax.grid(True, linestyle='--', linewidth=0.5, alpha=0.5)
     ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+    plt.ylim(bottom=0)  # Hide negative y-values
+
+    # optional legend if regression shown
+    if slope is not None:
+        ax.legend(loc='upper left', fontsize=8)
+
     plt.tight_layout()
 
     buf = BytesIO()
