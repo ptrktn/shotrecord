@@ -13,7 +13,8 @@ def weekly_series_plot(formatted):
 
     ax.bar(range(len(weeks)), counts, width=0.8, color='slateblue')
     ax.set_xticks(range(0, len(weeks), tick_spacing))
-    ax.set_xticklabels(weeks[::tick_spacing], rotation=45, ha='right', fontsize=8)
+    ax.set_xticklabels(weeks[::tick_spacing],
+                       rotation=45, ha='right', fontsize=8)
     ax.set_ylabel('Count')
     ax.set_title('Weekly Series Count', fontsize=10)
     ax.grid(True, linestyle='--', linewidth=0.5, alpha=0.5)
@@ -29,10 +30,40 @@ def weekly_series_plot(formatted):
 
 
 def generate_target(series):
-    coords = [(i.x, i.y) for i in series.shot]  # FIXME: ensure shots are in order
+    # FIXME: ensure shots are in order
+    shotdata = [(i.x, i.y, i.shotnum) for i in series.shot]
     fig, ax = plt.subplots(figsize=(6, 5))
-    xscale = 2.2 # FIXME: this should be a parameter
-    ring = Circle((300, 250), radius=int(0.5 * 59.5 * xscale), fill=True, facecolor='black', edgecolor='black', linewidth=1)
+    xscale = 2.2  # FIXME: this should be a parameter
+
+    x0 = 10
+    y0 = 10
+    lf = 20
+    ax.annotate(series.description, (x0, y0), color='black',
+                fontsize=8, ha='left', va='center')
+    y0 += lf
+    ax.annotate(series.created_at, (x0, y0), color='black',
+                fontsize=8, ha='left', va='center')
+    y0 += lf
+    ax.annotate(f"Points: {series.total_points:.1f} Time: {series.total_t:.1f}", (x0, y0), color='black',
+                fontsize=8, ha='left', va='center')
+    y0 += lf
+
+    # TODO: Add precision metric (requires calibration, a.u. not suitable)
+
+    pct = next((m.value for m in series.metric if m.name ==
+               'ConsistencyPct'), None)
+    if pct:
+        ax.annotate(f"Consistency: {pct:.1f}%", (x0, y0), color='black',
+                    fontsize=8, ha='left', va='center')
+        y0 += lf
+
+    for shot in series.shot:
+        ax.annotate(f"Shot {shot.shotnum}: {shot.points:.1f}", (x0, y0), color='black',
+                    fontsize=8, ha='left', va='center')
+        y0 += lf
+
+    ring = Circle((300, 250), radius=int(0.5 * 59.5 * xscale),
+                  fill=True, facecolor='black', edgecolor='black', linewidth=1)
     ax.add_patch(ring)
 
     n = 11
@@ -42,7 +73,8 @@ def generate_target(series):
         else:
             edgecolor = 'black'
 
-        ring = Circle((300, 250), radius=int(0.5 * i * xscale), fill=False, edgecolor=edgecolor, linewidth=1)
+        ring = Circle((300, 250), radius=int(0.5 * i * xscale),
+                      fill=False, edgecolor=edgecolor, linewidth=1)
         ax.add_patch(ring)
         n -= 1
 
@@ -61,12 +93,13 @@ def generate_target(series):
         ax.plot(x, y, linewidth=0.8, color='orange')
 
     # Plot each shot as a circle
-    num = 0
-    for (x, y) in coords:
-        num += 1
-        circle = Circle((x, y), radius=9, fill=True, facecolor='yellow', edgecolor='black', linewidth=1)
+    for (x, y, n) in shotdata:
+        circle = Circle((x, y), radius=9, fill=True,
+                        facecolor='yellow', edgecolor='black', linewidth=1)
         ax.add_patch(circle)
-        ax.annotate(str(num), (x, y), color='blue', fontsize=7, ha='center', va='center')
+        if n > 0:
+            ax.annotate(str(n), (x, y), color='blue',
+                        fontsize=7, ha='center', va='center')
 
     ax.set_xlim(0, 600)
     ax.set_ylim(0, 500)
