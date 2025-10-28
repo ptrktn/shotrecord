@@ -14,6 +14,17 @@ from flask import abort, session, send_file
 from flask import Flask, render_template, request, redirect, url_for, copy_current_request_context, jsonify
 
 
+def localize_timestamps(series):
+    for s in series:
+        created = getattr(s, "created_at", None)
+        # Ensure the timestamp is timezone-aware UTC, then convert to local time
+        if created.tzinfo is None:
+            created = created.replace(tzinfo=timezone.utc)
+
+        # FIXME: timezone is user-specific
+        s.created_at = created.astimezone()  # convert to system local timezone
+
+
 def create_app():
     # Create the Flask application instance
     app = Flask(__name__)
@@ -213,6 +224,8 @@ def fragment_target(series_id):
     if not series:
         abort(404, description='Series not found')
 
+    localize_timestamps([series])
+
     return render_template('fragments/target.html', series=series)
 
 
@@ -241,18 +254,7 @@ def results():
         .all()
     )
 
-    for s in series:
-        created = getattr(s, "created_at", None)
-        if created is None:
-            s.created_at_local = None
-            continue
-
-        # Ensure the timestamp is timezone-aware UTC, then convert to local time
-        if created.tzinfo is None:
-            created = created.replace(tzinfo=timezone.utc)
-
-        local_dt = created.astimezone()  # convert to system local timezone
-        s.created_at_local = local_dt.strftime("%Y-%m-%d %H:%M:%S")
+    localize_timestamps(series)
 
     return render_template("results.html", message=message, series=series)
 

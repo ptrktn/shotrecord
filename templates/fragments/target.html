@@ -28,7 +28,7 @@
   </svg>
 
   <h2>{{ series.description }} Series {{ series.id }}</h2>
-  <p>Created at: {{ series.created_at_local.strftime('%Y-%m-%d %H:%M') }}</p>
+  <p>Created at: {{ series.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
   <p>Total points: {{ series.total_points }}</p>
   <p>Average points per shot: {{ '%.2f' % (series.total_points / series.n) }}</p>
   <p>Total time: {{ series.total_t }} seconds</p>
