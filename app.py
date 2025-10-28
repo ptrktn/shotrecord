@@ -208,6 +208,8 @@ def target(series_id):
     if not series:
         abort(404, description='Series not found')
 
+    localize_timestamps([series])
+
     return send_file(generate_target(series), mimetype='image/png')
 
 

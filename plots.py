@@ -72,7 +72,7 @@ def generate_target(series):
     ax.annotate(series.description, (x0, y0), color='black',
                 fontsize=8, ha='left', va='center')
     y0 += lf
-    ax.annotate(series.created_at, (x0, y0), color='black',
+    ax.annotate(series.created_at.strftime('%Y-%m-%d %H:%M'), (x0, y0), color='black',
                 fontsize=8, ha='left', va='center')
     y0 += lf
     ax.annotate(f"Points: {series.total_points:.1f} Time: {series.total_t:.1f}", (x0, y0), color='black',
