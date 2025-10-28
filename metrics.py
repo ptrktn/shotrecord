@@ -1,4 +1,6 @@
 # https://copilot.microsoft.com/shares/Rn18G7JSH6GqL9XyGiRWR
+# http://ballistipedia.com/index.php?title=Measuring_Precision
+
 import math
 from itertools import combinations
 
