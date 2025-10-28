@@ -8,13 +8,17 @@ from datetime import datetime
 class Base(DeclarativeBase):
     pass
 
+
 db = SQLAlchemy(model_class=Base)
+
 
 class Series(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    target_type = db.Column(db.String(64), nullable=False, default='10m ISSF Air Pistol')
+    target_model = db.Column(db.String(64), nullable=False, default='Ecoaims TAR-170/60L')
+    description = db.Column(db.String(64), nullable=False, default='Training Shooting')
     source_id = db.Column(db.Integer, nullable=False)
-    description = db.Column(db.String(64), nullable=False, default="Training Shooting")
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     total_points = db.Column(db.Float, nullable=False)
     n = db.Column(db.Integer, nullable=False)
