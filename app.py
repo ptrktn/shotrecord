@@ -14,6 +14,7 @@ from flask import abort, session, send_file
 from flask import Flask, render_template, request, redirect, url_for, copy_current_request_context, jsonify
 
 
+# TODO: timezone should be in user configuration
 def localize_timestamps(series):
     for s in series:
         created = getattr(s, "created_at", None)
@@ -64,25 +65,7 @@ def index():
     return render_template('index.html')
 
 
-@app.route("/points/<name>", methods=['GET'])
-def get_series_points(name):
-    results = (
-        db.session.query(Series.created_at, Series.total_points)
-        .filter(Series.name == name)
-        .order_by(Series.created_at.asc())
-        .all()
-    )
-
-    if not results:
-        abort(404, description=f"No series found for user '{name}'")
-
-    data = [
-        (r.created_at.isoformat(timespec='seconds'), round(r.total_points, 1))
-        for r in results
-    ]
-    return render_template("points.html", name=name, data=data)
-
-
+# TODO: choose the right metric and time aggregation
 @app.route('/trend', methods=['GET'])
 @login_required
 def get_series_trend():
@@ -118,12 +101,6 @@ def get_series(series_id):
     return render_template('series.html', series=series)
 
 
-@app.route("/shot", methods=['GET'])
-def shot():
-    result = None
-    return render_template("shot.html", result=result)
-
-
 @app.route('/upload', methods=['GET', 'POST'])
 @login_required
 def upload_file():
@@ -151,9 +128,8 @@ def upload_file():
 
     return render_template('upload.html')
 
-# TODO: use local time
 
-
+# TODO: use local/user time
 @app.route('/fragment/training')
 @login_required
 def training():
