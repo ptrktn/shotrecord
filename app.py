@@ -15,15 +15,18 @@ from flask import Flask, render_template, request, redirect, url_for, copy_curre
 
 
 # TODO: timezone should be in user configuration
+def localize_timestamp(ts):
+    # Ensure the timestamp is timezone-aware UTC, then convert to local time
+    if ts.tzinfo is None:
+        ts = ts.replace(tzinfo=timezone.utc)
+
+    # FIXME: timezone is user-specific
+    return ts.astimezone()  # convert to system local timezone
+
+
 def localize_timestamps(series):
     for s in series:
-        created = getattr(s, "created_at", None)
-        # Ensure the timestamp is timezone-aware UTC, then convert to local time
-        if created.tzinfo is None:
-            created = created.replace(tzinfo=timezone.utc)
-
-        # FIXME: timezone is user-specific
-        s.created_at = created.astimezone()  # convert to system local timezone
+        s.created_at = localize_timestamp(getattr(s, "created_at"))
 
 
 def create_app():
@@ -133,7 +136,7 @@ def upload_file():
 @app.route('/fragment/training')
 @login_required
 def training():
-    end_date = datetime.utcnow()
+    end_date = localize_timestamp(datetime.utcnow())
     start_date = end_date - timedelta(weeks=52)
 
     # Start from the Monday of the first week
@@ -147,16 +150,21 @@ def training():
         current += timedelta(weeks=1)
 
     # Query timestamps
+    # Convert the local start_monday back to UTC for querying the DB (DB timestamps are in UTC)
+    start_monday_utc = start_monday.astimezone(timezone.utc)
+    # TODO: If the DB stores tz-aware datetimes, pass start_monday_utc instead.
+    start_monday_for_query = start_monday_utc.replace(tzinfo=None)
+
     timestamps = (
         db.session.query(Series.created_at)
-        .filter(Series.created_at >= start_monday)
+        .filter(Series.created_at >= start_monday_for_query)
         .all()
     )
 
     # Count by ISO week
     actual_counts = defaultdict(int)
     # Iterate over dates
-    for dt in [ts[0] for ts in timestamps]:
+    for dt in [localize_timestamp(ts[0]) for ts in timestamps]:
         year_week = dt.isocalendar()[:2]
         actual_counts[year_week] += 1
 
