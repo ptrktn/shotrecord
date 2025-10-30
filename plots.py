@@ -145,3 +145,16 @@ def generate_target(series):
     plt.close(fig)
 
     return buf
+
+
+def points_median(series):
+    data = []
+
+    for s in series:
+        points = []
+        for shot in s.shot:
+            points.append(shot.points)
+
+        data.append(np.median(np.array(points)))
+
+    return data
