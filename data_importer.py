@@ -12,7 +12,8 @@ def extract_shots(obj):
     if isinstance(obj, dict):
         for key, value in obj.items():
             if key == "shot":
-                shots.append(value)
+                if value is not False:
+                    shots.append(value)
             else:
                 shots.extend(extract_shots(value))
     elif isinstance(obj, list):

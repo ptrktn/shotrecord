@@ -8,6 +8,7 @@ import argparse
 
 debug = False
 
+
 def plot_shots(coordinates, filename="shot_coordinates.png", xcal=-20, ycal=10):
     """
     Plot each (x, y) coordinate as a circle and mark the center point.
@@ -24,7 +25,8 @@ def plot_shots(coordinates, filename="shot_coordinates.png", xcal=-20, ycal=10):
     fig, ax = plt.subplots(figsize=(6, 6))
     n = 11
     xscale = 2.2
-    ring = Circle((300, 250), radius=int(0.5 * 59.5 * xscale), fill=True, facecolor='black', edgecolor='black', linewidth=1)
+    ring = Circle((300, 250), radius=int(0.5 * 59.5 * xscale),
+                  fill=True, facecolor='black', edgecolor='black', linewidth=1)
     ax.add_patch(ring)
 
     for i in [5, 11.5, 27.5, 43.5, 59.5, 75.5, 91.5, 107.5, 123.5, 139.5, 155.5]:
@@ -33,19 +35,22 @@ def plot_shots(coordinates, filename="shot_coordinates.png", xcal=-20, ycal=10):
         else:
             edgecolor = 'black'
 
-        ring = Circle((300, 250), radius=int(0.5 * i * xscale), fill=False, edgecolor=edgecolor, linewidth=1)
+        ring = Circle((300, 250), radius=int(0.5 * i * xscale),
+                      fill=False, edgecolor=edgecolor, linewidth=1)
         ax.add_patch(ring)
         n -= 1
-    
+
     # ax.axline((0,250), (600,250), color='black', linewidth=1)
     # ax.axline((300,0), (300,500), color='black', linewidth=1)
     # Plot each coordinate as a circle
     num = 0
     for (x, y) in coordinates:
         num += 1
-        circle = Circle((x + xcal, y + ycal), radius=9, fill=True, facecolor='yellow', edgecolor='black', linewidth=1)
+        circle = Circle((x + xcal, y + ycal), radius=9, fill=True,
+                        facecolor='yellow', edgecolor='black', linewidth=1)
         ax.add_patch(circle)
-        ax.annotate(str(num), (x + xcal, y + ycal), color='blue', fontsize=7, ha='center', va='center')
+        ax.annotate(str(num), (x + xcal, y + ycal), color='blue',
+                    fontsize=7, ha='center', va='center')
 
     ax.set_xlim(0, 600)
     ax.set_ylim(0, 500)
@@ -65,7 +70,8 @@ def extract_shots(obj):
     if isinstance(obj, dict):
         for key, value in obj.items():
             if key == "shot":
-                shots.append(value)
+                if value is not False:
+                    shots.append(value)
             else:
                 shots.extend(extract_shots(value))
     elif isinstance(obj, list):
@@ -109,8 +115,13 @@ def handle_ecoaims_db(db_path, game_id=None):
         coords = []
         all_shots = extract_shots(data)
         for shot in all_shots:
+            # shot: false
+            # if shot == False:
+            #    continue
+
             # print(json.dumps(shot, indent=4))
             coords.append((shot["x"], shot["y"]))
+
         plot_shots(coords, filename=f"shotrecord_{row[0]:05d}.png")
 
     conn.close()
@@ -118,9 +129,12 @@ def handle_ecoaims_db(db_path, game_id=None):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Create shot plots')
-    parser.add_argument('--game_id', type=int, required=False, help='Ecoaims ID of the game to plot shots for')
-    parser.add_argument('--ecoaims_db', type=str, required=True, help='Path to Ecoaims SQLite database file')
-    parser.add_argument('--debug', action='store_true', help='Enable debug mode')
+    parser.add_argument('--game_id', type=int, required=False,
+                        help='Ecoaims ID of the game to plot shots for')
+    parser.add_argument('--ecoaims_db', type=str, required=True,
+                        help='Path to Ecoaims SQLite database file')
+    parser.add_argument('--debug', action='store_true',
+                        help='Enable debug mode')
     args = parser.parse_args()
     debug = args.debug
 
