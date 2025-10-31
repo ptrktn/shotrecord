@@ -17,3 +17,20 @@ async function loadTarget(id) {
     }
 }
 
+function heatMapStartDate() {
+    var d = new Date();
+    var y = d.getFullYear();
+    var m = d.getMonth();
+
+    d.setDate(1);
+
+    if (11 == m) {
+        m = 0;
+    } else {
+        d.setFullYear(d.getFullYear() - 1);
+        d.setMonth(d.getMonth() + 1);
+    }
+
+    return d;
+}
+

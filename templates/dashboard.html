@@ -4,15 +4,66 @@
 
 {% block content %}
 
-    <div class="container">
-        {% if params['series_count'] > 0 %}
-            {% include "fragments/training.html" %}
-        {% else %}
-            <div class="alert alert-danger" role="alert">
-                No data found. Go to the <a href="/upload">upload</a> page to get started.
-            </div>
-        {% endif %}
+<div class="container">
 
-    </div>
+    {% if params['series_count'] > 0 %}
+        <div id="cal-heatmap"></div>
+        <script src="https://unpkg.com/cal-heatmap/dist/cal-heatmap.min.js"></script>
+        <link rel="stylesheet" href="https://unpkg.com/cal-heatmap/dist/cal-heatmap.css">
+        <script src="https://unpkg.com/@popperjs/core@2"></script>
+        <script src="https://unpkg.com/cal-heatmap/dist/plugins/Tooltip.min.js"></script>
+        <script>
+            const cal = new CalHeatmap();
+            const startDate = heatMapStartDate();
+            console.log(startDate);
+            cal.paint({
+                itemSelector: "#cal-heatmap",
+                date: { start: startDate },
+                range: 12,
+                domain: { type: "month", label: { position: "top" } },
+                subDomain: { type: "day", radius: 2 },
+                data: {
+                    source: "/data",
+                    type: "json",
+                    x: "date",
+                    y: "value",
+                    defaultValue: 0
+                },
+                scale: {
+                    color: {
+                        type: "linear",
+                        scheme: "Oranges",
+                        domain: [0, 20]
+                    }
+                },
+            },
+            [
+                [
+                    Tooltip,
+                    {
+                        text: function (date, value, dayjsDate) {
+                            return (
+                                (value ? value + ' series' : 'No series') + ' on ' + dayjsDate.format('LL')
+                            );
+                        },
+                    },
+                ]
+            ]);
+            cal.on('mouseover', (event, timestamp, value) => {
+                console.log(
+                    new Date(timestamp).toLocaleDateString() + ': ' + value + ' series'
+                );
+            });
+        </script>
+
+    {% else %}
+
+        <div class="alert alert-danger" role="alert">
+            No data found. Go to the <a href="/upload">upload</a> page to get started.
+        </div>
+
+    {% endif %}
+
+</div>
 
 {% endblock %}

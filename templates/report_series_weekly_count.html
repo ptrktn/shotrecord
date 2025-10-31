@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Series weekly count{% endblock %}
+
+{% block content %}
+
+  <div class="container">
+    <div id="training-image-container"></div>
+
+    <script>
+      async function loadImage(id=null) {
+        const response = await fetch(`/data/series/weekly_count`);
+        if (response.ok) {
+          const blob = await response.blob();
+          const imgURL = URL.createObjectURL(blob);
+
+          const img = document.createElement('img');
+          img.src = imgURL;
+          img.alt = `Image ${id}`;
+          img.style.maxWidth = '100%';
+
+          const container = document.getElementById('training-image-container');
+          container.innerHTML = ''; // Clear previous content
+          container.appendChild(img);
+        } else {
+          console.error('Failed to load image:', response.status);
+        }
+      }
+
+      loadImage();
+    </script>
+  </div>
+
+{% endblock %}

@@ -86,6 +86,26 @@ def get_series_trend():
     return render_template("trend.html", data=points_median(series))
 
 
+@app.route('/data', methods=['GET'])
+@login_required
+def get_heatmap_data():
+    series = (
+        db.session.query(Series)
+        .filter(Series.user_id == current_user.id)
+        .order_by(Series.created_at.asc())
+        .with_entities(
+            func.date(Series.created_at).label('date'),
+            func.count(Series.id).label('value')
+        ).group_by(func.date(Series.created_at)).order_by(func.date(Series.created_at).asc())
+        .all()
+    )
+
+    if not series:
+        abort(404, description='No series found')
+
+    return jsonify([{'date': str(row.date), 'value': row.value} for row in series])
+
+
 @app.route('/series/<int:series_id>', methods=['GET'])
 @login_required
 def get_series(series_id):
@@ -130,10 +150,15 @@ def upload_file():
     return render_template('upload.html')
 
 
-# TODO: use local/user time
-@app.route('/fragment/training')
+@app.route('/report/series/weekly_count')
 @login_required
-def training():
+def report_series_weekly_count():
+    return render_template('report_series_weekly_count.html')
+
+
+@app.route('/data/series/weekly_count')
+@login_required
+def data_series_weekly_count():
     end_date = localize_timestamp(datetime.utcnow())
     start_date = end_date - timedelta(weeks=52)
 

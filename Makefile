@@ -3,12 +3,9 @@ all:
 	/bin/true
 
 .PHONY: deps
-deps: static/d3.min.js
+deps:
 	python3 -m venv venv
 	. venv/bin/activate && pip install -r requirements.txt
-
-static/d3.min.js:
-	curl -sL https://d3js.org/d3.v7.min.js > $@
 
 .PHONY: run
 run:
