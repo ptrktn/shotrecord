@@ -4,11 +4,11 @@ import threading
 import uuid
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy import func, extract
+from sqlalchemy import func
 from sqlalchemy.orm import joinedload
 from data_importer import import_data_from_file
 from models import db, Series, User
-from plots import weekly_series_plot, generate_target, points_median
+from plots import weekly_series_plot, generate_target, median_points
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask import abort, session, send_file
 from flask import Flask, render_template, request, redirect, url_for, copy_current_request_context, jsonify
@@ -66,24 +66,6 @@ login_manager.login_view = 'login'
 @login_required
 def index():
     return render_template('index.html')
-
-
-# TODO: choose the right metric and time aggregation
-@app.route('/trend', methods=['GET'])
-@login_required
-def get_series_trend():
-    series = (
-        db.session.query(Series)
-        .options(joinedload(Series.shot))
-        .filter(Series.user_id == current_user.id)
-        .order_by(Series.created_at.asc())
-        .all()
-    )
-
-    if not series:
-        abort(404, description='No series found')
-
-    return render_template("trend.html", data=points_median(series))
 
 
 @app.route('/data', methods=['GET'])
@@ -154,6 +136,24 @@ def upload_file():
 @login_required
 def report_series_weekly_count():
     return render_template('report_series_weekly_count.html')
+
+
+# TODO: choose the right metric and time aggregation
+@app.route('/report/series/median_points', methods=['GET'])
+@login_required
+def report_series_median_points():
+    series = (
+        db.session.query(Series)
+        .options(joinedload(Series.shot))
+        .filter(Series.user_id == current_user.id)
+        .order_by(Series.created_at.asc())
+        .all()
+    )
+
+    if not series:
+        abort(404, description='No series found')
+
+    return render_template("report_series_median_points.html", data=median_points(series))
 
 
 @app.route('/data/series/weekly_count')

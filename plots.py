@@ -147,7 +147,7 @@ def generate_target(series):
     return buf
 
 
-def points_median(series):
+def median_points(series):
     data = []
 
     for s in series:
