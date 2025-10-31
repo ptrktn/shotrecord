@@ -125,7 +125,6 @@ def upload_file():
         thread = threading.Thread(
             target=import_data_from_file_wrapper, args=(filename, current_user.id))
         thread.start()
-        session['message'] = 'File uploaded successfully! Data import in progress.'
 
         return redirect(url_for('dashboard'))
 
@@ -250,10 +249,9 @@ def dashboard():
     return render_template("dashboard.html", params=params)
 
 
-@app.route("/results")
+@app.route('/results')
 @login_required
 def results():
-    message = session.get('message', None)
     series = (
         db.session.query(Series)
         .filter(Series.user_id == current_user.id)
@@ -265,7 +263,7 @@ def results():
 
     localize_timestamps(series)
 
-    return render_template("results.html", message=message, series=series)
+    return render_template('results.html', series=series)
 
 
 # Load user for Flask-Login
