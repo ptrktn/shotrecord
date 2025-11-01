@@ -4,11 +4,12 @@ import threading
 import uuid
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy import func
+from sqlalchemy import func, cast, Date
 from sqlalchemy.orm import joinedload
 from data_importer import import_data_from_file
 from models import db, Series, User
 from plots import weekly_series_plot, generate_target, median_points
+from metrics import compute_metrics
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask import abort, session, send_file
 from flask import Flask, render_template, request, redirect, url_for, copy_current_request_context, jsonify
@@ -155,6 +156,7 @@ def report_series_median_points():
     return render_template("report_series_median_points.html", data=median_points(series))
 
 
+# It is unfeasible to do this in database-agnostic way, therefore most part is done with Python.
 @app.route('/data/series/weekly_count')
 @login_required
 def data_series_weekly_count():
@@ -179,7 +181,7 @@ def data_series_weekly_count():
 
     timestamps = (
         db.session.query(Series.created_at)
-        .filter(Series.created_at >= start_monday_for_query)
+        .filter(Series.created_at >= start_monday_for_query, Series.user_id == current_user.id)
         .all()
     )
 
@@ -199,6 +201,32 @@ def data_series_weekly_count():
     ]
 
     return send_file(weekly_series_plot(formatted), mimetype='image/png')
+
+
+# TODO: fragment (?)
+@app.route('/report/series/latest_date')
+@login_required
+def report_series_latest_date():
+    latest_date = (
+        db.session.query(func.max(Series.created_at))
+        .filter(Series.user_id == current_user.id)
+        .scalar()
+    ).date()
+    # TODO: this could be SQLite specific (?)
+    series = (
+        db.session.query(Series)
+        .options(joinedload(Series.shot), joinedload(Series.metric))
+        .filter(
+            func.date(Series.created_at) == latest_date,
+            Series.user_id == current_user.id
+        )
+        .all()
+    )
+
+    shots = [[shot.x, shot.y] for s in series for shot in s.shot]
+    metrics = compute_metrics(shots)
+
+    return render_template('latest_date.html', date=latest_date, shots=shots, metrics=metrics)
 
 
 @app.route('/target/<int:series_id>')
