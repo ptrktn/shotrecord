@@ -4,105 +4,97 @@
 
 {% block content %}
 
-  <style>
-    svg {
-      background-color: #fff;
-      display: block;
-      margin: 20px auto;
-      border: 1px solid #ccc;
-    }
-    text {
-      font-family: sans-serif;
-      font-size: 10px;
-      pointer-events: none;
-    }
-  </style>
+<div class="container">
 
-  <svg id="mySVG" width="600" height="500">
-    <div id="tooltip" style="
-        position: absolute;
-        background: #fff;
-        border: 1px solid #333;
-        padding: 4px 8px;
-        font-size: 12px;
-        font-family: sans-serif;
-        pointer-events: none;
-        visibility: hidden;">
-    </div> 
-  </svg>
-
-  <script src="/static/d3.min.js"></script>
-  <script src="/static/series.js"></script>
-  <h2>{{ series.description }} Series {{ series.id }} User {{ current_user.username }}</h2>
-  <p>Created at: {{ series.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
-  <p>Total points: {{ series.total_points }}</p>
-  <p>Average points per shot: {{ '%.2f' % (series.total_points / series.n) }}</p>
-  <p>Total time: {{ series.total_t }} seconds</p>
-  <p>Number of shots: {{ series.n }}</p>
-  <p>Points variance: {{ series.variance }}</p>
-
-  <h3>Shots</h3>
-  <table>
+  <table id="series" class="table table-striped">
     <thead>
       <tr>
-        <th>#</th>
+        <th>ID</th>
+        <th>Date</th>
+        <th>Description</th>
         <th>Points</th>
-        <th>Hit</th>
-        <th>X</th>
-        <th>Y</th>
         <th>Time</th>
       </tr>
     </thead>
-    <tbody>
-      {% for shot in series.shot %}
-      <tr>
-        <td>{{ shot.shotnum }}</td>
-        <td>{{ shot.points }}</td>
-        <td>{{ shot.hit }}</td>
-        <td>{{ shot.x }}</td>
-        <td>{{ shot.y }}</td>
-        <td>{{ shot.t }}</td>
-      </tr>
-      {% endfor %}
+    <tbody id="data-table-body">
+      <!-- Data will be loaded here -->
     </tbody>
   </table>
 
-    <h3>Metrics</h3>
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Value</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for metric in series.metric %}
-      <tr>
-        <td>{{ metric.name }}</td>
-        <td>{{ metric.value }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <nav aria-label="Page navigation example">
+    <ul class="pagination" id="pagination-controls">
+      <!-- Pagination links will be generated here -->
+    </ul>
+  </nav>
 
-  <script>
-    const seriesData = {
-      shots: [
-        {% for shot in series.shot %}
-        {
-          shotnum: {{ shot.shotnum }},
-          points: {{ shot.points }},
-          hit: {{ shot.hit }},
-          x: {{ shot.x }},
-          y: {{ shot.y }},
-          t: {{ shot.t }}
-        }{% if not loop.last %},{% endif %}
-        {% endfor %}
-      ],
-      mpi_x: {{ series.metric | selectattr('name','equalto','MPI_x') | map(attribute='value') | list | first | default(0) }},
-      mpi_y: {{ series.metric | selectattr('name','equalto','MPI_y') | map(attribute='value') | list | first | default(0) }}
-    };
-    create_series_plot(seriesData);
-  </script>
+</div> <!-- container -->
+
+<script>
+  let allData = [];
+  const itemsPerPage = 100;
+
+  async function fetchData(pageNumber, itemsPerPage) {
+    try {
+      const response = await fetch(`/data/series?page=${pageNumber}&limit=${itemsPerPage}`);
+      const data = await response.json();
+      populateTable(data.items); // Assuming 'items' is the array of data
+      generatePagination(data.totalItems, pageNumber, itemsPerPage); // Assuming 'totalItems' is the total count
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  }
+
+  function populateTable(items) {
+    const tableBody = document.getElementById('data-table-body');
+    tableBody.innerHTML = ''; // Clear existing data
+    items.forEach(item => {
+      const row = tableBody.insertRow();
+      row.insertCell().textContent = item.id;
+      row.insertCell().textContent = item.created_at;
+      row.insertCell().textContent = item.description;
+      row.insertCell().textContent = item.total_points;
+      row.insertCell().textContent = item.total_t;
+    });
+  }
+
+  function generatePagination(totalItems, currentPage, itemsPerPage) {
+    const paginationControls = document.getElementById('pagination-controls');
+    paginationControls.innerHTML = ''; // Clear existing controls
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+    for (let i = 1; i <= totalPages; i++) {
+      const li = document.createElement('li');
+      li.classList.add('page-item');
+      if (i === currentPage) {
+        li.classList.add('active');
+      }
+      const a = document.createElement('a');
+      a.classList.add('page-link');
+      a.textContent = i;
+      a.href = '#'; // Prevent full page reload
+      a.addEventListener('click', (event) => {
+        event.preventDefault();
+        fetchData(i, itemsPerPage);
+      });
+      li.appendChild(a);
+      paginationControls.appendChild(li);
+    }
+  }
+
+  document.getElementById('series').addEventListener('click', function (event) {
+    const row = event.target.closest('tr');
+    if (row) {
+      const id = row.cells[0].textContent;
+      const url = `/target/${id}`;
+      // Redirect the user
+      window.location.href = url;
+    }
+  });
+
+  // Initial load
+  document.addEventListener('DOMContentLoaded', () => {
+    fetchData(1, 100); // Load first page with 10 items
+  });
+</script>
 
 {% endblock %}

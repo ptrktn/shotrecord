@@ -89,20 +89,45 @@ def get_heatmap_data():
     return jsonify([{'date': str(row.date), 'value': row.value} for row in series])
 
 
-@app.route('/series/<int:series_id>', methods=['GET'])
+@app.route('/data/series', methods=['GET'])
 @login_required
-def get_series(series_id):
+def data_series():
+    page = request.args.get('page', 1, type=int)
+    limit = request.args.get('limit', 100, type=int)
+    offset = (page - 1) * limit
+
+    # Get total count
+    total = db.session.query(func.count(Series.id)).filter(
+        Series.user_id == current_user.id).scalar()
+
+    # Get paginated results
     series = (
         db.session.query(Series)
-        .options(joinedload(Series.shot), joinedload(Series.metric))
-        .filter(Series.id == series_id, Series.user_id == current_user.id)
-        .first()
+        .filter(Series.user_id == current_user.id)
+        .order_by(Series.created_at.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
     )
 
-    if not series:
-        abort(404, description='Series not found')
+    if not series and total > 0:
+        abort(404, description='Page not found')
 
-    return render_template('series.html', series=series)
+    return jsonify({
+        'totalItems': total,
+        'items': [{
+            'id': s.id,
+            'created_at': localize_timestamp(s.created_at).strftime('%Y-%m-%d %H:%M'),
+            'description': s.description,
+            'total_points': round(s.total_points, 1),
+            'total_t': round(s.total_t, 1)
+        } for s in series]})
+
+
+@app.route('/series', methods=['GET'])
+@login_required
+def get_series():
+    return render_template('series.html')
 
 
 @app.route('/upload', methods=['GET', 'POST'])
