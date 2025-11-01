@@ -247,7 +247,7 @@ function createDatePlot(svg_id, shots, metrics) {
 
   // Draw shot circle
   shotGroup.append("circle")
-    .attr("r", Math.floor(5 * scale))
+    .attr("r", Math.floor(2.5 * scale))
     .attr("fill", "#fbff00ff")
     .attr("stroke", "#000000");
 
