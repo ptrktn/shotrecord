@@ -22,7 +22,8 @@
         <th>Date</th>
         <th>Description</th>
         <th>Points</th>
-        <th>Time</th>
+        <th>Time (s)</th>
+        <th>Consistency (%)</th>
       </tr>
     </thead>
     <tbody id="data-table-body">
@@ -63,6 +64,7 @@
       row.insertCell().textContent = item.description;
       row.insertCell().textContent = item.total_points;
       row.insertCell().textContent = item.total_t;
+      row.insertCell().textContent = item.consistency;
     });
   }
 
