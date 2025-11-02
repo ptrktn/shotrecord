@@ -19,7 +19,6 @@
   <table id="series" class="table table-hover">
     <thead>
       <tr>
-        <th>ID</th>
         <th>Date</th>
         <th>Description</th>
         <th>Points</th>
@@ -59,7 +58,7 @@
     tableBody.innerHTML = ''; // Clear existing data
     items.forEach(item => {
       const row = tableBody.insertRow();
-      row.insertCell().textContent = item.id;
+      row.setAttribute('data-row-id', item.id);
       row.insertCell().textContent = item.created_at;
       row.insertCell().textContent = item.description;
       row.insertCell().textContent = item.total_points;
@@ -94,7 +93,7 @@
   document.getElementById('series').addEventListener('click', function (event) {
     const row = event.target.closest('tr');
     if (row) {
-      const id = row.cells[0].textContent;
+      const id = row.getAttribute('data-row-id');
       const url = `/target/${id}`;
       // Redirect the user
       window.location.href = url;
@@ -103,7 +102,7 @@
 
   // Initial load
   document.addEventListener('DOMContentLoaded', () => {
-    fetchData(1, 100); // Load first page with 10 items
+    fetchData(1, itemsPerPage); // Load the first page
   });
 </script>
 
