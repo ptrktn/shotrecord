@@ -172,7 +172,7 @@ function create_series_plot(series) {
   }
 
   // Target is hardcoded for Ecoaims 10m air pistol system in this version.
-function createDatePlot(svg_id, shots, metrics) {
+function createMultiPlot(svg_id, shots, metrics) {
   const svg = d3.select(svg_id);
   const width = +svg.attr("width");
   const height = +svg.attr("height");

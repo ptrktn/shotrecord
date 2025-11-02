@@ -4,79 +4,10 @@
 
 {% block content %}
 
-<div class="container">
+<div class="container d-flex justify-content-center align-items-center"">
 
     {% if params['series_count'] > 0 %}
         <div id="cal-heatmap"></div>
-        <div id="target-content"></div>
-
-        <script src="https://unpkg.com/cal-heatmap/dist/cal-heatmap.min.js"></script>
-        <link rel="stylesheet" href="https://unpkg.com/cal-heatmap/dist/cal-heatmap.css">
-        <script src="https://unpkg.com/@popperjs/core@2"></script>
-        <script src="https://unpkg.com/cal-heatmap/dist/plugins/Tooltip.min.js"></script>
-        <script>
-            const cal = new CalHeatmap();
-            const startDate = heatMapStartDate();
-            console.log(startDate);
-            cal.paint({
-                itemSelector: "#cal-heatmap",
-                date: { start: startDate },
-                range: 12,
-                domain: { type: "month", label: { position: "top" } },
-                subDomain: { type: "day", radius: 2 },
-                data: {
-                    source: "/data",
-                    type: "json",
-                    x: "date",
-                    y: "value",
-                    defaultValue: 0
-                },
-                scale: {
-                    color: {
-                        type: "linear",
-                        scheme: "Oranges",
-                        domain: [0, 20]
-                    }
-                },
-            },
-            [
-                [
-                    Tooltip,
-                    {
-                        text: function (date, value, dayjsDate) {
-                            return (
-                                (value ? value + ' series' : 'No series') + ' on ' + dayjsDate.format('LL')
-                            );
-                        },
-                    },
-                ]
-            ]);
-
-            cal.on('click', (event, timestamp, value) => {
-                if (!value) return;
-
-                var d = new Date(timestamp);
-                var year = d.getFullYear();
-                var month = String(d.getMonth() + 1).padStart(2, '0');
-                var day = String(d.getDate()).padStart(2, '0');
-                var date = year + '-' + month + '-' + day;
-
-                fetch(`/fragment/multiseries/${date}`)
-                .then(response => response.text())
-                .then(html => {
-                    const target = document.getElementById('target-content');
-                    target.innerHTML = html;
-
-                    // Re-execute any script tags
-                    target.querySelectorAll('script').forEach(oldScript => {
-                        const newScript = document.createElement('script');
-                        newScript.textContent = oldScript.textContent;
-                        document.body.appendChild(newScript);
-                        document.body.removeChild(newScript); // Optional cleanup
-                    });
-                });
-            });
-        </script>
 
     {% else %}
 
@@ -87,5 +18,83 @@
     {% endif %}
 
 </div>
+
+<div id="target-content" class="container"></div>
+
+<style>
+    svg {
+        background-color: #fff;
+        display: block;
+        margin: 20px auto;
+    }
+</style>
+
+<script src="https://unpkg.com/cal-heatmap/dist/cal-heatmap.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/cal-heatmap/dist/cal-heatmap.css">
+<script src="https://unpkg.com/@popperjs/core@2"></script>
+<script src="https://unpkg.com/cal-heatmap/dist/plugins/Tooltip.min.js"></script>
+<script>
+    const cal = new CalHeatmap();
+    const startDate = heatMapStartDate();
+    console.log(startDate);
+    cal.paint({
+        itemSelector: "#cal-heatmap",
+        date: { start: startDate },
+        range: 12,
+        domain: { type: "month", label: { position: "top" } },
+        subDomain: { type: "day", radius: 2 },
+        data: {
+            source: "/data",
+            type: "json",
+            x: "date",
+            y: "value",
+            defaultValue: 0
+        },
+        scale: {
+            color: {
+                type: "linear",
+                scheme: "Oranges",
+                domain: [0, 20]
+            }
+        },
+    },
+    [
+        [
+            Tooltip,
+            {
+                text: function (date, value, dayjsDate) {
+                    return (
+                        (value ? value + ' series' : 'No series') + ' on ' + dayjsDate.format('LL')
+                    );
+                },
+            },
+        ]
+    ]);
+
+    cal.on('click', (event, timestamp, value) => {
+        if (!value) return;
+
+        var d = new Date(timestamp);
+        var year = d.getFullYear();
+        var month = String(d.getMonth() + 1).padStart(2, '0');
+        var day = String(d.getDate()).padStart(2, '0');
+        var date = year + '-' + month + '-' + day;
+
+        fetch(`/fragment/multiseries/${date}`)
+        .then(response => response.text())
+        .then(html => {
+            const target = document.getElementById('target-content');
+            target.innerHTML = html;
+
+            // Re-execute any script tags
+            target.querySelectorAll('script').forEach(oldScript => {
+                const newScript = document.createElement('script');
+                newScript.textContent = oldScript.textContent;
+                document.body.appendChild(newScript);
+                document.body.removeChild(newScript); // Optional cleanup
+            });
+        });
+    });
+</script>
 
 {% endblock %}
