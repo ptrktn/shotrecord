@@ -103,6 +103,7 @@ def data_series():
     # Get paginated results
     series = (
         db.session.query(Series)
+        .options(joinedload(Series.metric))
         .filter(Series.user_id == current_user.id)
         .order_by(Series.created_at.desc())
         .offset(offset)
@@ -120,7 +121,8 @@ def data_series():
             'created_at': localize_timestamp(s.created_at).strftime('%Y-%m-%d %H:%M'),
             'description': s.description,
             'total_points': round(s.total_points, 1),
-            'total_t': round(s.total_t, 1)
+            'total_t': round(s.total_t, 1),
+            'consistency': round(next((m.value for m in s.metric if m.name == 'ConsistencyPct'), 0), 1)
         } for s in series]})
 
 
@@ -252,6 +254,26 @@ def report_series_latest_date():
     metrics = compute_metrics(shots)
 
     return render_template('latest_date.html', date=latest_date, shots=shots, metrics=metrics)
+
+
+@app.route('/fragment/multiseries/<date>')
+@login_required
+def fragment_multiseries_date(date):
+    # TODO: this could be SQLite specific (?)
+    series = (
+        db.session.query(Series)
+        .options(joinedload(Series.shot), joinedload(Series.metric))
+        .filter(
+            func.date(Series.created_at) == date,
+            Series.user_id == current_user.id
+        )
+        .all()
+    )
+
+    shots = [[shot.x, shot.y] for s in series for shot in s.shot]
+    metrics = compute_metrics(shots)
+
+    return render_template('fragments/multiseries.html', date=date, shots=shots, metrics=metrics)
 
 
 @app.route('/target/<int:series_id>')

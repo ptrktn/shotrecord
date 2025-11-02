@@ -1,0 +1,45 @@
+<div class="container">
+
+  {% if shots %}
+
+    <style>
+      svg {
+        background-color: #fff;
+        display: block;
+        margin: 20px auto;
+        border: 1px solid #ccc;
+      }
+      text {
+        font-family: sans-serif;
+        font-size: 10px;
+        pointer-events: none;
+      }
+    </style>
+
+    <svg id="latest-shots" width="600" height="500">
+      <div id="tooltip" style="
+          position: absolute;
+          background: #fff;
+          border: 1px solid #333;
+          padding: 4px 8px;
+          font-size: 12px;
+          font-family: sans-serif;
+          pointer-events: none;
+          visibility: hidden;">
+      </div> 
+    </svg>
+
+    <script>
+
+    createDatePlot('#latest-shots', {{ shots | safe }}, {{ metrics | safe }});
+
+    </script>
+
+    <!-- TODO: improve here -->
+    <div class="alert alert-info" role="alert">
+      Date: {{ date }} Consistency: {{ metrics["ConsistencyPct"] | round(1) }}% Shots: {{ shots | length }}
+    </div>
+
+  {% endif %}
+  
+</div>

@@ -8,6 +8,8 @@
 
     {% if params['series_count'] > 0 %}
         <div id="cal-heatmap"></div>
+        <div id="target-content"></div>
+
         <script src="https://unpkg.com/cal-heatmap/dist/cal-heatmap.min.js"></script>
         <link rel="stylesheet" href="https://unpkg.com/cal-heatmap/dist/cal-heatmap.css">
         <script src="https://unpkg.com/@popperjs/core@2"></script>
@@ -49,10 +51,30 @@
                     },
                 ]
             ]);
-            cal.on('mouseover', (event, timestamp, value) => {
-                console.log(
-                    new Date(timestamp).toLocaleDateString() + ': ' + value + ' series'
-                );
+
+            cal.on('click', (event, timestamp, value) => {
+                if (!value) return;
+
+                var d = new Date(timestamp);
+                var year = d.getFullYear();
+                var month = String(d.getMonth() + 1).padStart(2, '0');
+                var day = String(d.getDate()).padStart(2, '0');
+                var date = year + '-' + month + '-' + day;
+
+                fetch(`/fragment/multiseries/${date}`)
+                .then(response => response.text())
+                .then(html => {
+                    const target = document.getElementById('target-content');
+                    target.innerHTML = html;
+
+                    // Re-execute any script tags
+                    target.querySelectorAll('script').forEach(oldScript => {
+                        const newScript = document.createElement('script');
+                        newScript.textContent = oldScript.textContent;
+                        document.body.appendChild(newScript);
+                        document.body.removeChild(newScript); // Optional cleanup
+                    });
+                });
             });
         </script>
 
