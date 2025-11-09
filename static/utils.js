@@ -22,8 +22,6 @@ function heatMapStartDate() {
     var y = d.getFullYear();
     var m = d.getMonth();
 
-    d.setDate(1);
-
     if (11 == m) {
         m = 0;
     } else {

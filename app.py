@@ -69,7 +69,7 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/data', methods=['GET'])
+@app.route('/data/heatmap', methods=['GET'])
 @login_required
 def get_heatmap_data():
     series = (
