@@ -117,7 +117,7 @@ def import_ecoaims_db(db_path, user_id):
         db.session.commit()
 
         print(f"User ID: {user_id}, Series ID: {series_id}, Created: {created_at}, "
-              f"Points: {total_points}, Time: {total_t}")
+              f"Points: {total_points:.1f}, Time: {total_t:.1f}")
 
     conn.close()
 
